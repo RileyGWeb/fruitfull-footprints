@@ -1,0 +1,35 @@
+.chip {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.mon {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.day {
+  font-family: var(--font-heading);
+  font-size: 17px;
+}
+
+.sm {
+  width: 42px;
+  height: 42px;
+}
+
+.sm .mon {
+  font-size: 8.5px;
+}
+
+.sm .day {
+  font-size: 15px;
+}

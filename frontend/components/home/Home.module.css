@@ -1,0 +1,115 @@
+/* Home — ported 1:1 from the prototype's <!-- HOME --> block (“02 Home”). */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* — greeting + verse — */
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.greeting {
+  font-size: clamp(30px, 6vw, 44px);
+  margin: 0;
+}
+
+.verse {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--color-neutral-700);
+}
+
+.leaf {
+  color: var(--color-accent-2-600);
+  margin-top: 3px;
+}
+
+.verseText {
+  margin: 0;
+  font-size: 15px;
+  text-wrap: pretty;
+}
+
+.cite {
+  white-space: nowrap;
+}
+
+/* — two columns: they sit side by side on desktop and wrap to one column on phones — */
+
+.cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.main {
+  flex: 1 1 460px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.side {
+  flex: 1 1 280px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* — loading: quiet placeholder shapes, faded in only if the snapshot takes a moment — */
+
+.skeleton {
+  animation: appear 0.4s ease 0.3s both;
+}
+
+.bone {
+  background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+}
+
+.boneWeek {
+  height: 380px;
+  border-radius: 34px;
+  background: color-mix(in srgb, var(--color-accent-2-700) 14%, transparent);
+}
+
+.bonePrayer {
+  height: 88px;
+  border-radius: 24px;
+}
+
+.boneList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.boneDates {
+  height: 330px;
+  border-radius: 30px;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

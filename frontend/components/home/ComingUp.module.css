@@ -1,0 +1,79 @@
+/* “Coming up”: remembered dates in the next six weeks. */
+
+.card {
+  background: var(--color-surface);
+  border-radius: 30px;
+  padding: 22px 22px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+}
+
+/* A page section, so an h2, at the design's h4 size. */
+.heading {
+  margin: 0 auto 6px 0;
+  font-size: 20px;
+}
+
+/* Takes the global .hit touch target. */
+.ghost {
+  flex: none;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--color-accent-700);
+}
+
+/* At 13px the link is 35px tall, so the global .hit's −5px falls a pixel short of 44: reach a pixel further. */
+.ghost::after {
+  inset: -6px -5px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 6px;
+  border-radius: 18px;
+  color: inherit;
+}
+
+.row:hover {
+  background: var(--color-neutral-200);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sub {
+  font-size: 12.5px;
+  color: var(--color-neutral-700);
+}
+
+.empty {
+  margin: 0;
+  padding: 4px 6px 10px;
+  font-size: 13.5px;
+  color: var(--color-neutral-700);
+}

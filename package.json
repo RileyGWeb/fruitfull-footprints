@@ -1,0 +1,9 @@
+{
+  "name": "fruitfull-footprints",
+  "private": true,
+  "scripts": {
+    "dev": "./scripts/dev-up.sh",
+    "dev:down": "./scripts/dev-down.sh",
+    "demo": "cd backend && php artisan migrate:fresh --seed --seeder=DemoSeeder"
+  }
+}

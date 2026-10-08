@@ -1,0 +1,402 @@
+/* Prototype screen 04 Profile, ported 1:1 from its inline styles (+ the gap-fill Edit / pencil buttons). */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+/* — top row: ← Everyone … Edit (like the study reader) — */
+
+.top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.top > :first-child {
+  margin-right: auto;
+}
+
+.edit {
+  gap: 6px;
+}
+
+/* — header — */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  align-items: center;
+}
+
+.info {
+  flex: 1 1 260px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.name {
+  overflow-wrap: anywhere;
+  font-size: clamp(34px, 7vw, 48px);
+  margin: 0;
+}
+
+.gifts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.gift {
+  font-size: 13px;
+  padding: 5px 13px;
+  font-weight: 600;
+}
+
+.giftToggle {
+  font-size: 13px;
+  color: var(--color-accent-700);
+  gap: 5px;
+}
+
+.addPrayer {
+  min-height: 48px;
+  padding-inline: 22px;
+  font-size: 15px;
+  gap: 8px;
+}
+
+/* — gift panel — */
+
+.panel {
+  background: var(--color-neutral-100);
+  border-radius: 28px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panelHint {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  color: var(--color-neutral-800);
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option {
+  cursor: pointer;
+  position: relative;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--color-neutral-700);
+  border: 1.5px solid var(--color-neutral-300);
+}
+
+.option::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+}
+
+@media (hover: hover) {
+  .option:hover {
+    border-color: var(--color-neutral-400);
+  }
+}
+
+.option[aria-pressed='true'] {
+  background: var(--color-accent-2-200);
+  color: var(--color-accent-2-800);
+  border-color: var(--color-accent-2-400);
+}
+
+/* — prayer requests — */
+
+.body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.prayers {
+  flex: 1 1 440px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Section headings are h2 (Answered: h3) for screen-reader navigation, at the prototype's sizes:
+   h3 here, h4 for the aside cards, h6 for “Answered”. */
+.sectionTitle {
+  margin: 0;
+  font-size: 25px;
+}
+
+.quiet {
+  overflow-wrap: anywhere;
+  background: var(--color-neutral-100);
+  border-radius: 24px;
+  padding: 22px;
+  color: var(--color-neutral-800);
+}
+
+.quiet strong {
+  display: block;
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: 26px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.text {
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* The 36px ghost pencil floats in the card's top-right corner: only the first line of the request
+   makes room for it, and the line keeps its height. */
+.pencil {
+  float: right;
+  color: var(--color-neutral-700);
+  margin: -5px -14px -5px 4px;
+}
+
+.pencilInline {
+  float: none;
+  margin: -9px -12px -9px auto;
+}
+
+@media (hover: none) {
+  .pencil:hover,
+  .giftToggle:hover,
+  .smallAction:hover {
+    background: transparent;
+  }
+}
+
+.update {
+  overflow-wrap: anywhere;
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--color-neutral-800);
+}
+
+.update strong {
+  font-weight: 600;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent-2-500);
+  flex: none;
+  margin-top: 7px;
+}
+
+.cardFoot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.added {
+  font-size: 13px;
+  color: var(--color-neutral-700);
+  margin-right: auto;
+}
+
+.answer {
+  gap: 6px;
+  color: var(--color-accent-2-800);
+}
+
+.answeredTitle {
+  margin: 14px 0 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-700);
+}
+
+.answeredCard {
+  background: var(--color-accent-2-100);
+  border-radius: 26px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.answeredText {
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--color-neutral-800);
+}
+
+.answerNote {
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  line-height: 1.35;
+  color: var(--color-accent-2-800);
+}
+
+.answeredFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.answeredWhen {
+  font-size: 12.5px;
+  color: var(--color-accent-2-700);
+}
+
+/* — aside: About + Dates to remember — */
+
+.aside {
+  flex: 1 1 300px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panelCard {
+  background: var(--color-surface);
+  border-radius: 30px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.datesCard {
+  gap: 10px;
+}
+
+/* break-word (not anywhere): “Dates to remember” still wraps between words next to “+ Add”. */
+.cardTitle {
+  overflow-wrap: break-word;
+  margin: 0;
+  font-size: 20px;
+}
+
+.aboutLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+}
+
+.aboutValue {
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.emptyNote {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* Line the ghost button's icon up with the text above it. */
+.emptyNote .smallAction {
+  margin-left: calc(-1 * var(--space-1));
+}
+
+.muted {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-neutral-700);
+}
+
+.datesHead {
+  display: flex;
+  align-items: center;
+}
+
+.datesHead .cardTitle {
+  margin: 0 auto 0 0;
+}
+
+.smallAction {
+  font-size: 13px;
+  color: var(--color-accent-700);
+  gap: 5px;
+}
+
+.addDate {
+  gap: 4px;
+}
+
+/* Rows open the date dialog: the hover wash and tap area reach past the row without moving it. */
+.dateRow {
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: -4px -8px;
+  padding: 4px 8px;
+  border-radius: 18px;
+}
+
+/* Hover only where there's a pointer: on touch it would stick after the dialog closes. */
+@media (hover: hover) {
+  .dateRow:hover {
+    background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  }
+}
+
+.dateText {
+  overflow-wrap: anywhere;
+  flex: 1;
+  min-width: 0;
+}
+
+.dateLabel {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.dateSub {
+  font-size: 12.5px;
+  color: var(--color-neutral-700);
+}

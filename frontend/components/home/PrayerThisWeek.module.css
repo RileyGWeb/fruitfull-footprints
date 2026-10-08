@@ -1,0 +1,107 @@
+/* “Prayer this week”: the newest active requests. */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+/* A page section, so an h2, at the design's h3 size. */
+.heading {
+  margin: 0;
+  margin-right: auto;
+  font-size: 25px;
+}
+
+/* The ghost link, the avatars and the bottom button take the global .hit touch target. */
+.ghost {
+  flex: none;
+  white-space: nowrap;
+  color: var(--color-accent-700);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--color-surface);
+  border-radius: 24px;
+  padding: 16px 18px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+
+.name {
+  font-size: 15px;
+}
+
+.ago {
+  font-size: 12px;
+  color: var(--color-neutral-700);
+}
+
+.text {
+  margin: 2px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.all {
+  align-self: flex-start;
+  min-height: 42px;
+}
+
+/* — no active requests — */
+
+.empty {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--color-surface);
+  border-radius: 24px;
+  padding: 16px 18px;
+}
+
+.emptyIcon {
+  color: var(--color-accent-2-600);
+  margin-top: 2px;
+}
+
+.emptyTitle {
+  font-size: 15px;
+}
+
+.emptyText {
+  margin: 2px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-neutral-800);
+}

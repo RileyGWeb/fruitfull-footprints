@@ -1,0 +1,172 @@
+/* Prototype screen 03 People (Everyone + Dates to remember), ported 1:1 from its inline styles. */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* — header — */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.heading {
+  margin-right: auto;
+}
+
+.title {
+  font-size: clamp(30px, 6vw, 44px);
+  margin: 0;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--color-neutral-700);
+}
+
+/* Gap-fill “Add person”, like Studies' “New study”. */
+.add {
+  min-height: 44px;
+  gap: 6px;
+}
+
+/* — Everyone — */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+}
+
+.card {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-surface);
+  border-radius: 30px;
+  padding: 22px;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.names {
+  min-width: 0;
+}
+
+.first {
+  overflow-wrap: anywhere;
+  font-family: var(--font-heading);
+  font-size: 21px;
+  line-height: 1.1;
+}
+
+.last {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  color: var(--color-neutral-700);
+}
+
+.gifts {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-accent-2-700);
+}
+
+.line {
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-neutral-800);
+  flex: 1;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  /* Keeps the tags on the card's floor when there's no one-line description. */
+  margin-top: auto;
+}
+
+/* A long life-event title in the “soon” tag wraps inside the card instead of pushing it wider. */
+.tags > :global(.tag) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* — Dates to remember — */
+
+.dates {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  max-width: 760px;
+}
+
+.intro {
+  margin: 0;
+  color: var(--color-neutral-800);
+  max-width: 56ch;
+}
+
+.month {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* An h2 under the page's h1, at the prototype's h4 size. */
+.monthName {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.row {
+  cursor: pointer;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 22px;
+  background: var(--color-surface);
+}
+
+.row:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rowTitle {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rowSub {
+  font-size: 13px;
+  color: var(--color-neutral-700);
+}
+
+.kind {
+  white-space: nowrap;
+}

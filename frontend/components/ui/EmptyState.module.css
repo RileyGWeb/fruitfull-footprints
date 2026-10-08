@@ -1,0 +1,43 @@
+.empty {
+  padding: 40px 28px;
+  background: var(--color-neutral-100);
+  border-radius: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.icon {
+  color: var(--color-accent-2-600);
+}
+
+.title {
+  margin: 6px 0 0;
+  font-size: 25px; /* the h3 size, whatever the level */
+}
+
+.body {
+  margin: 0;
+  color: var(--color-neutral-800);
+}
+
+.action {
+  margin-top: 12px;
+}
+
+/* ScreenState / NotFound's “Try again” / “Go to Home”: a 44px target, like the screens' own. */
+.button {
+  min-height: 44px;
+  gap: 6px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.quiet {
+  color: var(--color-neutral-800);
+}

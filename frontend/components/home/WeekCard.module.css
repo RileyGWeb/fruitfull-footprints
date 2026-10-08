@@ -1,0 +1,102 @@
+/* The sage “This week” card. */
+
+.card {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-accent-2-700);
+  color: var(--color-neutral-100);
+  border-radius: 34px;
+  padding: clamp(24px, 5vw, 40px);
+}
+
+.blobTop {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: var(--color-accent-2-600);
+  right: -80px;
+  top: -90px;
+}
+
+.blobBottom {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--color-accent-2-600);
+  right: 70px;
+  bottom: -60px;
+  opacity: 0.6;
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.kicker {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-accent-2-200);
+}
+
+.ref {
+  font-size: clamp(38px, 8vw, 56px);
+  margin: 6px 0 0;
+  color: var(--color-neutral-100);
+  /* “1 Thessalonians 4” is wider than a 320px phone at 38px: hyphenate rather than cut mid-word. */
+  hyphens: auto;
+}
+
+/* “No study posted yet” is a sentence, not a reference: keep it on fewer lines. */
+.refQuiet {
+  font-size: clamp(30px, 6vw, 42px);
+  text-wrap: balance;
+}
+
+.title {
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.place {
+  font-size: 15px;
+  color: var(--color-accent-2-200);
+  margin-top: 2px;
+}
+
+.desc {
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 52ch;
+  margin: 14px 0 20px;
+  color: var(--color-neutral-200);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* No description: keep the button the same distance below the place line. */
+.place + .actions {
+  margin-top: 20px;
+}
+
+.open {
+  min-height: 46px;
+  padding-inline: 22px;
+  font-size: 15px;
+}
+
+/* The global terracotta focus ring barely shows on sage (and around the terracotta button): use cream. */
+.card :focus-visible {
+  outline-color: var(--color-neutral-100);
+}

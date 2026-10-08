@@ -1,0 +1,271 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+  /* max(…, env(safe-area-inset-*)): a notched phone in landscape gets the desktop layout. */
+  padding: clamp(14px, 3vw, 28px) max(clamp(18px, 4vw, 40px), env(safe-area-inset-right)) 48px max(clamp(18px, 4vw, 40px), env(safe-area-inset-left));
+}
+
+/* “Skip to content”: the first Tab stop, out of sight until it has keyboard focus. */
+.skip {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 40;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--color-neutral-900);
+  color: var(--color-bg);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.skip:not(:focus) {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip:hover {
+  color: var(--color-bg);
+}
+
+/* The Entrance over a locked-out app (which stays mounted underneath, inert). */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--color-bg);
+}
+
+.mark {
+  flex: none;
+  border-radius: 50%;
+  background: var(--color-accent-2-700);
+  color: var(--color-bg);
+  display: grid;
+  place-items: center;
+}
+
+/* — desktop top nav (≥ 760px) — */
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 18px max(clamp(18px, 4vw, 40px), env(safe-area-inset-right)) 18px max(clamp(18px, 4vw, 40px), env(safe-area-inset-left));
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.brand {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+  min-width: 0;
+}
+
+.brand .mark {
+  width: 38px;
+  height: 38px;
+}
+
+.brandName {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item {
+  cursor: pointer;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-neutral-800);
+}
+
+.item:hover {
+  background: var(--color-neutral-200);
+}
+
+.item.on {
+  color: var(--color-accent-800);
+  background: var(--color-accent-200);
+}
+
+.topAction {
+  color: var(--color-neutral-700);
+}
+
+.topAction:hover {
+  color: var(--color-neutral-700);
+}
+
+.gear {
+  margin-left: 8px;
+}
+
+.topAction.on {
+  color: var(--color-accent-800);
+  background: var(--color-accent-200);
+  border-color: transparent;
+}
+
+/* — mobile header (< 760px) — */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(14px + env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 4px max(18px, env(safe-area-inset-left));
+}
+
+.headBrand {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+  min-width: 0;
+}
+
+/* 44px touch target around the 32px brand row */
+.headBrand::after {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
+
+.headBrand .mark {
+  width: 32px;
+  height: 32px;
+}
+
+.headName {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headAction {
+  position: relative;
+  color: var(--color-neutral-700);
+}
+
+.headAction:hover {
+  color: var(--color-neutral-700);
+}
+
+/* 44px touch target around the 36px icon button (measured from inside its 1px border) */
+.headAction::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+}
+
+.headAction.on {
+  color: var(--color-accent-700);
+}
+
+/* — mobile tab bar — */
+
+.tabs {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 8px max(10px, env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  background: var(--color-neutral-100);
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -4px 18px color-mix(in srgb, #2e2b25 10%, transparent);
+}
+
+.tab {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 48px;
+  justify-content: center;
+  color: var(--color-neutral-800);
+}
+
+.tab.on {
+  color: var(--color-accent-700);
+}
+
+.pill {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 30px;
+  border-radius: 999px;
+}
+
+.tab.on .pill {
+  background: var(--color-accent-200);
+}
+
+.tabLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* — splash while the gate is checked — */
+
+.splash {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+
+.splash .mark {
+  width: 58px;
+  height: 58px;
+  animation: fade-in 0.4s 0.5s ease both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 759.98px) {
+  .topBar {
+    display: none;
+  }
+}
+
+@media (min-width: 760px) {
+  .head,
+  .tabs {
+    display: none;
+  }
+}

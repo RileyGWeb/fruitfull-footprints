@@ -1,0 +1,166 @@
+/* Form bits shared by the dialogs (inline styles of prototype screens 09, 12, 13). */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.control {
+  min-height: 44px;
+  font-size: 15.5px;
+}
+
+.select {
+  min-height: 44px;
+  font-size: 15px;
+}
+
+/* `textarea.` outranks the DS `textarea.input { min-height: 90px }` */
+textarea.request {
+  border-radius: 22px;
+  min-height: 110px;
+  font-size: 15.5px;
+}
+
+textarea.answer {
+  border-radius: 22px;
+  min-height: 96px;
+  font-size: 15.5px;
+}
+
+textarea.note {
+  border-radius: 22px;
+  min-height: 64px;
+  font-size: 15.5px;
+}
+
+.leaf {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-accent-2-200);
+  color: var(--color-accent-2-800);
+  display: grid;
+  place-items: center;
+}
+
+/* — date kind pills — */
+
+.kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kind {
+  position: relative;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-700);
+}
+
+/* 44px touch targets around the 38px pills and the 22px checkbox row, without changing how they look. */
+.kind::after,
+.repeat::after {
+  content: '';
+  position: absolute;
+  inset: -3px 0;
+}
+
+.repeat {
+  position: relative;
+}
+
+.repeat::after {
+  inset: -11px 0;
+}
+
+/* A quiet note under a field (same place as an error). */
+.hint {
+  font-size: 13px;
+  color: var(--color-neutral-700);
+  padding: 0 14px;
+  margin: -4px 0 0;
+}
+
+.quietRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+/* — prayer updates in the edit dialog — */
+
+.updates {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.update {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-neutral-800);
+}
+
+.update > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+  padding-top: 7px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent-2-500);
+  flex: none;
+  margin-top: 14px;
+}
+
+.remove {
+  position: relative;
+  flex: none;
+  color: var(--color-neutral-600);
+}
+
+.remove::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+}
+
+/* — tone picker — */
+
+.tones {
+  display: flex;
+  gap: 10px;
+}
+
+.tone {
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+}
+
+.toneOn {
+  border-color: var(--color-accent);
+}
+
+.empty {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-neutral-800);
+}

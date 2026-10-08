@@ -1,0 +1,83 @@
+/* Same look as the /offline page: a sand card on the cream ground with a sage sun behind it. */
+
+.wrap {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(32px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  position: relative;
+  overflow: hidden;
+}
+
+.sun {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: var(--color-accent-2-200);
+  right: -180px;
+  top: -170px;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: var(--color-surface);
+  border-radius: 36px;
+  padding: 40px 36px 32px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mark {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--color-accent-2-700);
+  color: var(--color-bg);
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+}
+
+.kicker {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-700);
+  font-weight: 600;
+}
+
+.title {
+  font-size: clamp(30px, 8vw, 38px);
+  margin: 4px 0 6px;
+  text-wrap: balance;
+}
+
+.body {
+  font-size: 16px;
+  color: var(--color-neutral-800);
+  margin: 0 0 18px;
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.primary {
+  min-height: 46px;
+  padding-inline: 22px;
+  font-size: 15px;
+}
+
+.secondary {
+  min-height: 46px;
+  color: var(--color-neutral-800);
+}

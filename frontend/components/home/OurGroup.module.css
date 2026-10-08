@@ -1,0 +1,68 @@
+/* “Our group”: everyone's avatar, in join order. */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+}
+
+/* A page section, so an h2, at the design's h4 size. */
+.heading {
+  margin: 0 auto 0 0;
+  font-size: 20px;
+}
+
+/* The ghost link and “Add person” take the global .hit touch target. */
+.ghost {
+  flex: none;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--color-accent-700);
+}
+
+/* At 13px the link is 35px tall, so the global .hit's −5px falls a pixel short of 44: reach a pixel further. */
+.ghost::after {
+  inset: -6px -5px;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 58px;
+  color: inherit;
+}
+
+.first {
+  font-size: 12px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--color-neutral-700);
+}
+
+.add {
+  align-self: flex-start;
+  min-height: 42px;
+}

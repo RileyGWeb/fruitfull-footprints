@@ -1,0 +1,9 @@
+.back {
+  align-self: flex-start;
+  color: var(--color-neutral-800);
+  gap: 6px;
+}
+
+.back:hover {
+  color: var(--color-neutral-800);
+}

@@ -1,0 +1,400 @@
+/* Studies (/studies) — ported 1:1 from the prototype's “06 Studies” inline styles. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  /* A pasted link or a long unbroken word wraps instead of being clipped or widening the page. */
+  overflow-wrap: anywhere;
+}
+
+/* — header — */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.heading {
+  margin-right: auto;
+}
+
+.h1 {
+  font-size: clamp(30px, 6vw, 44px);
+  margin: 0;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--color-neutral-700);
+}
+
+.newStudy {
+  min-height: 44px;
+  gap: 6px;
+}
+
+/* — up next + drafts row — */
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.week {
+  flex: 2 1 420px;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface);
+  border-radius: 34px;
+  padding: clamp(24px, 5vw, 38px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.weekBlob {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: var(--color-accent-200);
+  right: -70px;
+  top: -80px;
+  opacity: 0.7;
+}
+
+.weekKicker {
+  position: relative;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-accent-700);
+}
+
+.weekRef {
+  position: relative;
+  font-size: clamp(38px, 8vw, 54px);
+  margin: 4px 0 0;
+}
+
+.weekTitle {
+  position: relative;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.weekDate {
+  position: relative;
+  font-size: 14.5px;
+  color: var(--color-neutral-700);
+}
+
+.weekVerse {
+  position: relative;
+  margin: 16px 0 20px;
+  font-size: 17px;
+  line-height: 1.6;
+  font-style: italic;
+  max-width: 50ch;
+  color: var(--color-neutral-900);
+}
+
+.read {
+  position: relative;
+  align-self: flex-start;
+  min-height: 46px;
+  padding-inline: 22px;
+  font-size: 15px;
+}
+
+/* Empty “Up next”: same card, quieter heading. */
+.weekEmptyTitle {
+  position: relative;
+  font-size: clamp(28px, 5.5vw, 38px);
+  margin: 4px 0 0;
+}
+
+.weekEmptyBody {
+  position: relative;
+  margin: 6px 0 20px;
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 46ch;
+  color: var(--color-neutral-800);
+}
+
+.draft {
+  flex: 1 1 240px;
+  min-width: 0;
+  border: 2px dashed var(--color-neutral-400);
+  border-radius: 34px;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Gap-fill: a published study beyond “Up next” — the draft card's shape with a solid border. */
+.posted {
+  border-style: solid;
+  border-color: var(--color-divider);
+}
+
+.draftTag {
+  align-self: flex-start;
+  font-weight: 600;
+}
+
+/* An h2 (sibling of “Up next”) at the h3 size the design uses. */
+.draftRef {
+  margin: 10px 0 0;
+  font-size: 25px;
+}
+
+.draftTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.draftDate {
+  font-size: 14px;
+  color: var(--color-neutral-700);
+  flex: 1;
+}
+
+.keepWriting {
+  align-self: flex-start;
+  margin-top: 12px;
+  gap: 6px;
+}
+
+/* Placeholder while the snapshot loads: the card's shape, nothing in it. */
+.skeleton {
+  flex: 2 1 420px;
+  min-width: 0;
+  min-height: 340px;
+  background: var(--color-surface);
+  border-radius: 34px;
+  opacity: 0.6;
+}
+
+/* — the path so far — */
+
+.path {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* An h2 at the h4 size the design uses. */
+.pathTitle {
+  margin: 0;
+  font-size: 20px;
+}
+
+.track {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.node {
+  flex: 1 0 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nodeLine {
+  display: flex;
+  align-items: center;
+}
+
+.dot {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+}
+
+.dash {
+  flex: 1;
+  height: 0;
+  border-top: 3px dotted var(--color-neutral-400);
+  margin: 0 8px;
+}
+
+.nodeName {
+  font-family: var(--font-heading);
+  font-size: 17px;
+}
+
+.nodeSub {
+  font-size: 12.5px;
+  color: var(--color-neutral-700);
+}
+
+/* — previous studies — */
+
+.archive {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 820px;
+}
+
+.archiveHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+/* An h2 at the h3 size the design uses. */
+.archiveTitle {
+  margin: 0 auto 0 0;
+  font-size: 25px;
+}
+
+.search {
+  flex: 0 1 280px;
+}
+
+/* The label around the field: a tap up to 3px above or below the 42px pill still focuses it (48px). */
+.searchField {
+  display: block;
+  position: relative;
+  isolation: isolate;
+}
+
+.searchField::after {
+  content: '';
+  position: absolute;
+  inset: -3px 0;
+  z-index: -1; /* under the field, so clicks on it still place the caret */
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-neutral-600);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding-left: 40px;
+  min-height: 42px;
+  background: var(--color-neutral-100);
+}
+
+/* On phones the field itself is a full 44px touch target; desktop keeps the design's 42px pill. */
+@media (max-width: 759.98px) {
+  .searchInput {
+    min-height: 44px;
+  }
+}
+
+.searchInput::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.noResults {
+  margin: 0;
+  color: var(--color-neutral-800);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* An h3 (one per series, under “Previous studies”) that keeps the design's small caps label look. */
+.groupLabel {
+  font-family: var(--font-body);
+  line-height: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-2-700);
+  margin: 10px 0 6px 2px;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  color: var(--color-text);
+}
+
+.row:hover {
+  color: var(--color-accent-700);
+}
+
+.rail {
+  width: 16px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.railLine {
+  flex: 1;
+  border-left: 3px dotted var(--color-neutral-400);
+}
+
+.railDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-accent-2-500);
+  flex: none;
+}
+
+.rowBody {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.rowRef {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  min-width: 110px;
+}
+
+.rowTitle {
+  font-size: 15.5px;
+  flex: 1 1 160px;
+}
+
+.rowDate {
+  font-size: 13px;
+  color: var(--color-neutral-700);
+}

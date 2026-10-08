@@ -1,0 +1,250 @@
+/* Settings (gap-fill, SPEC §6) — composed from the prototype's own pieces: the page header of
+   Prayer/Studies, the sand cards of the profile's “About” aside, the editor's fields and the
+   dialogs' buttons and error lines. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* — header (like 05 Prayer / 06 Studies) — */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.header > div {
+  margin-right: auto;
+}
+
+.title {
+  font-size: clamp(30px, 6vw, 44px);
+  margin: 0;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--color-neutral-700);
+}
+
+/* — password + device side by side like 04 Profile (section 440 / aside 300), stacked on phones — */
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 28px;
+  align-items: flex-start;
+}
+
+.main {
+  flex: 1 1 440px;
+  min-width: 0;
+}
+
+.aside {
+  flex: 1 1 300px;
+  min-width: 0;
+}
+
+/* — cards (the profile's “About Rachel”) — */
+
+.card {
+  background: var(--color-surface);
+  border-radius: 30px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 20px; /* the h4 size the cards were drawn with; they're h2s under the page's h1 */
+}
+
+.intro {
+  margin: -6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-neutral-800);
+  text-wrap: pretty;
+}
+
+/* — fields (08 Edit study) — */
+
+/* One column on phones, two on narrow desktops, four once there's room (name + tagline span two). */
+.fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 760px) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1040px) {
+  .fields {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .half {
+    grid-column: span 2;
+  }
+}
+
+/* Password: current on its own row, new + again side by side on desktop. */
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 760px) {
+  .pair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pair > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.control {
+  min-height: 44px;
+  font-size: 16px;
+  background: var(--color-neutral-100);
+}
+
+.error {
+  margin: 0;
+  padding: 5px 14px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-accent-700);
+}
+
+.hint {
+  margin: 0;
+  padding: 5px 14px 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--color-neutral-700);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.submit {
+  min-height: 44px;
+  padding-inline: 20px;
+}
+
+/* Save with nothing changed yet: dimmed like a disabled button (the global aria-disabled style), but
+   with the not-allowed cursor rather than the busy one. */
+.unchanged[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+/* — “On this device” rows (the About card's label + value rows) — */
+
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+}
+
+.text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.rowAction {
+  margin-top: 10px;
+  min-height: 44px;
+  gap: 6px;
+}
+
+/* Add to Home Screen steps — the study's numbered question circles, smaller. */
+.steps {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.num {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--color-accent-200);
+  color: var(--color-accent-800);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-heading);
+  font-size: 14px;
+}
+
+.glyph {
+  display: inline-block;
+  vertical-align: -3px;
+  margin: 0 3px 0 1px;
+  color: var(--color-accent-700);
+}
+
+/* — loading (group card only; the others need no data). A failed load is the shared LoadError. — */
+
+.ghostLabel {
+  width: 96px;
+  height: 12px;
+  margin: 3px 0 7px;
+  border-radius: 999px;
+  background: var(--color-neutral-200);
+}
+
+.ghostInput {
+  height: 44px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-neutral-100) 55%, transparent);
+}
+
+.ghostButton {
+  width: 76px;
+  height: 44px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-neutral-100) 55%, transparent);
+}

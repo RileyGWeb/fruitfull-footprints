@@ -1,0 +1,47 @@
+/* The DS .seg clips its options (overflow: hidden), which would also clip the focus ring and any
+   touch-target expansion. Here the pill isn't clipped; the end options carry the rounding instead,
+   so it looks the same. */
+.seg {
+  background: var(--color-neutral-100);
+  overflow: visible;
+}
+
+.opt {
+  position: relative;
+  cursor: pointer;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--color-text);
+}
+
+.opt:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.opt:last-child {
+  border-radius: 0 999px 999px 0;
+}
+
+.opt:only-child {
+  border-radius: 999px;
+}
+
+.opt:not(.active):hover {
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+
+.active {
+  background: var(--color-accent);
+  color: var(--color-neutral-100);
+}
+
+@media (max-width: 759.98px) {
+  /* 44px touch target around the 40px option, without changing how it looks. */
+  .opt::after {
+    content: '';
+    position: absolute;
+    inset: -3px 0;
+  }
+}

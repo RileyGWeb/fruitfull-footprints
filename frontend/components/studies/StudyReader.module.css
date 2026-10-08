@@ -1,0 +1,322 @@
+/* Study reader (/studies/[id]) — ported 1:1 from the prototype's “07 Study” inline styles. */
+
+.article {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* A pasted link or a long unbroken word wraps instead of widening the page. */
+  overflow-wrap: anywhere;
+}
+
+.bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.back {
+  margin-right: auto;
+}
+
+.edit {
+  gap: 6px;
+}
+
+/* Flex column like the prototype's article, so the tag row's and rule's margins don't collapse. */
+.head {
+  display: flex;
+  flex-direction: column;
+}
+
+.kicker {
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-accent-700);
+}
+
+.ref {
+  font-size: clamp(44px, 11vw, 68px);
+  margin: 8px 0 2px;
+}
+
+.title {
+  font-size: clamp(21px, 4.5vw, 26px);
+  font-weight: 600;
+  color: var(--color-neutral-800);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 20px 0 6px;
+}
+
+.tag {
+  font-size: 13px;
+  padding: 6px 14px;
+  font-weight: 600;
+}
+
+/* Gap-fill: drafts are marked with the small neutral tag the Studies draft cards use. */
+.draftTag {
+  font-weight: 600;
+}
+
+.rule {
+  height: 3px;
+  border-top: 3px dotted var(--color-neutral-400);
+  margin: 22px 0 10px;
+  width: 120px;
+}
+
+.section {
+  margin-top: 28px;
+}
+
+/* — text — */
+
+/* Section headings are h2s (under the study's h1) at the h3 size the design uses. */
+.heading {
+  margin: 0 0 12px;
+  font-size: 25px;
+}
+
+.para {
+  font-size: 17.5px;
+  line-height: 1.75;
+  margin: 0 0 16px;
+  text-wrap: pretty;
+}
+
+/* — scripture — */
+
+.scripture {
+  position: relative;
+  background: var(--color-surface);
+  border-radius: 30px;
+  padding: 30px clamp(22px, 5vw, 34px) 24px;
+  margin: 0;
+}
+
+.quoteMark {
+  position: absolute;
+  top: -6px;
+  left: 24px;
+  font-family: var(--font-heading);
+  font-size: 72px;
+  line-height: 1;
+  color: var(--color-accent-300);
+}
+
+.readTogether {
+  position: relative;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+  margin: 0 0 10px;
+}
+
+.verse {
+  position: relative;
+  margin: 0;
+  font-size: clamp(18px, 4vw, 21px);
+  line-height: 1.6;
+  color: var(--color-neutral-900);
+  text-wrap: pretty;
+}
+
+.verse p {
+  margin: 0;
+}
+
+.verse p + p {
+  margin-top: 12px;
+}
+
+/* — questions — */
+
+.questionsHeading {
+  margin: 0 0 14px;
+  font-size: 25px;
+}
+
+.questions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.question {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--color-neutral-100);
+  border-radius: 24px;
+  padding: 16px 18px;
+}
+
+.qn {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--color-accent-200);
+  color: var(--color-accent-800);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-heading);
+  font-size: 16px;
+}
+
+.qText {
+  font-size: 17px;
+  line-height: 1.55;
+  padding-top: 4px;
+  text-wrap: pretty;
+}
+
+/* — reflect — */
+
+.reflect {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-accent-2-100);
+  border-radius: 30px;
+  padding: 26px clamp(22px, 5vw, 32px);
+}
+
+.reflectBlob {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--color-accent-2-200);
+  right: -40px;
+  bottom: -50px;
+}
+
+/* An <h2> for outline/navigation, reset to the prototype's plain div look. */
+.reflectHead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-accent-2-700);
+  margin: 0 0 8px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: normal;
+}
+
+.reflectLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.reflectPara {
+  position: relative;
+  font-family: var(--font-heading);
+  font-size: clamp(19px, 4vw, 22px);
+  line-height: 1.4;
+  margin: 0 0 8px;
+  color: var(--color-accent-2-900);
+  text-wrap: pretty;
+}
+
+/* — prayer — */
+
+.prayer {
+  padding: 8px 0 0;
+}
+
+.prayerPara {
+  font-size: 18px;
+  line-height: 1.75;
+  margin: 0;
+  font-style: italic;
+  color: var(--color-neutral-900);
+  text-wrap: pretty;
+}
+
+.prayerPara + .prayerPara {
+  margin-top: 16px;
+}
+
+/* — footer — */
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 48px 0 0;
+  color: var(--color-neutral-700); /* the design's neutral-600 is 3.6:1 on the page; 700 is 5.5:1 */
+  font-size: 13px;
+}
+
+.feet {
+  color: var(--color-accent-2-500);
+}
+
+/* — states — */
+
+.note {
+  margin: 28px 0 0;
+  font-size: 16px;
+  color: var(--color-neutral-800);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.noteText {
+  margin: 0;
+}
+
+.skel {
+  display: block;
+  border-radius: 999px;
+  background: var(--color-surface);
+  opacity: 0.6;
+}
+
+.skelKicker {
+  width: 220px;
+  height: 14px;
+  margin: 2px 0 0;
+}
+
+.skelRef {
+  width: min(300px, 70%);
+  height: 56px;
+  margin: 14px 0 10px;
+  border-radius: 20px;
+}
+
+.skelTitle {
+  width: 180px;
+  height: 22px;
+}
+
+.skelBlock {
+  width: 100%;
+  height: 160px;
+  margin-top: 46px;
+  border-radius: 30px;
+}

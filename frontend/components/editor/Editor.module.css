@@ -1,0 +1,376 @@
+/* 08 Edit study — the prototype's <!-- EDITOR --> block, inline styles ported 1:1 (cqi → vw). */
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* While the editor is open, whatever gets focus scrolls clear of its sticky pill (16px above it), on
+   top of the global rule that clears the phone tab bar. StudyEditor measures the pill into
+   --ff-editor-pill; the rule ends with the pill, so no other page is affected. Root scroll-padding
+   rather than the fields' scroll-margin: Chrome ignores scroll-margin when it focuses a textarea
+   that has text in it. */
+:global(html):has(.footer) {
+  scroll-padding-bottom: calc(var(--ff-editor-pill, 0px) + 12px + 16px);
+}
+
+/* — back link + Draft → Published steps — */
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Shares its row with the steps (BackButton supplies the look). */
+.back {
+  margin-right: auto;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-700);
+}
+
+.draftOn {
+  background: var(--color-accent);
+  color: var(--color-neutral-100);
+}
+
+.publishedOn {
+  background: var(--color-accent-2-700);
+  color: var(--color-neutral-100);
+}
+
+.dots {
+  width: 28px;
+  border-top: 3px dotted var(--color-neutral-400);
+}
+
+.h1 {
+  font-size: clamp(30px, 6vw, 42px);
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+/* — the sand details card — */
+
+.details {
+  background: var(--color-surface);
+  border-radius: 30px;
+  padding: clamp(18px, 4vw, 28px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+}
+
+.control {
+  min-height: 44px;
+  font-size: 16px;
+  background: var(--color-neutral-100);
+}
+
+textarea.description {
+  border-radius: 22px;
+  min-height: 76px;
+  font-size: 15px;
+  background: var(--color-neutral-100);
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.control[aria-invalid='true'],
+.description[aria-invalid='true'],
+.body[aria-invalid='true'] {
+  border-color: var(--color-accent-600);
+}
+
+/* Inline validation, like the Entrance's “Try that once more.” */
+.error {
+  font-size: 13px;
+  color: var(--color-accent-700);
+  padding: 4px 14px 0;
+  margin: 0;
+}
+
+/* — study notes — */
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.notesTitle {
+  margin: 0;
+}
+
+.empty {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-neutral-700);
+}
+
+/* A card is a grid so the move buttons can sit in the header row on desktop and drop below the
+   text on a phone, where the heading needs the room. */
+.card {
+  background: var(--color-neutral-100);
+  border-radius: 26px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 10px;
+}
+
+.tag {
+  font-weight: 700;
+}
+
+.text {
+  background: var(--color-neutral-300);
+  color: var(--color-neutral-800);
+}
+
+.scripture,
+.questions {
+  background: var(--color-accent-200);
+  color: var(--color-accent-800);
+}
+
+.reflect,
+.prayer {
+  background: var(--color-accent-2-200);
+  color: var(--color-accent-2-800);
+}
+
+.head {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  /* A 44px touch target that still takes the designed 36px in the row: 4px more padding above and
+     below, taken back by the margins (the row gap and card padding have room for it). */
+  padding: 8px 6px;
+  margin-block: -4px;
+  border-radius: 10px;
+  cursor: text;
+}
+
+.head::placeholder {
+  color: var(--color-neutral-500);
+}
+
+/* `all: unset` drops the global focus ring; give it back (inside the card, so it isn't clipped). */
+.head:focus-visible {
+  outline: 2px solid var(--color-accent-600);
+  outline-offset: 0;
+}
+
+.moves {
+  display: flex;
+  gap: 8px;
+}
+
+.iconBtn {
+  color: var(--color-neutral-600);
+}
+
+.remove {
+  grid-column: -2;
+}
+
+textarea.body {
+  grid-column: 1 / -1;
+  border-radius: 20px;
+  min-height: 96px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  background: var(--color-bg);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+/* — Add buttons — */
+
+.addRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.addLabel {
+  font-size: 13px;
+  color: var(--color-neutral-700);
+  margin-right: 4px;
+}
+
+.add {
+  gap: 4px;
+}
+
+/* — sticky pill footer — */
+
+.footer {
+  position: sticky;
+  bottom: 12px;
+  z-index: 1;
+  background: var(--color-surface);
+  border-radius: 999px;
+  box-shadow: var(--shadow-lg);
+  padding: 10px 10px 10px 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.hint {
+  font-size: 13.5px;
+  color: var(--color-neutral-800);
+  margin-right: auto;
+  flex: 1 1 180px;
+}
+
+.save,
+.save:hover {
+  color: var(--color-neutral-900);
+}
+
+.publish {
+  min-height: 44px;
+  padding-inline: 20px;
+}
+
+/* — gap-fill: quiet actions for a saved study — */
+
+/* Text lines up with the footer hint: 17px + the ghost button's 4.4px padding + 1px border = 22px. */
+.quietRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-left: 17px;
+}
+
+.quiet {
+  font-size: 13.5px;
+  gap: 5px;
+  color: var(--color-accent-700);
+}
+
+.quiet:hover {
+  color: var(--color-accent-800);
+}
+
+.quietNeutral,
+.quietNeutral:hover {
+  color: var(--color-neutral-800);
+}
+
+/* — a copy restored from this device — */
+
+.restored {
+  margin: -8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px calc(8px + var(--space-1) + 1px);
+  font-size: 13.5px;
+  color: var(--color-neutral-800);
+}
+
+/* The button's text lines up with the sentence when it wraps onto its own line (it's a ghost button:
+   padding plus a 1px border); on one line the gap above makes up for it. */
+.restored button {
+  margin-inline-start: calc(-1 * var(--space-1) - 1px);
+}
+
+/* — after a refused save (409) — */
+
+.conflictActions {
+  flex-wrap: wrap;
+}
+
+/* — loading — */
+
+/* A block in the page column, so the bars take its width (the title bar 80%, the card all of it). */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  animation: appear 0.4s 0.3s ease both;
+}
+
+.skelTitle {
+  height: 42px;
+  width: min(420px, 80%);
+  border-radius: 999px;
+  background: var(--color-neutral-200);
+}
+
+.skelCard {
+  height: 330px;
+  border-radius: 30px;
+  background: var(--color-surface);
+  opacity: 0.6;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 759.98px) {
+  .card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  /* Move buttons go under the text so the heading keeps its width. */
+  .moves {
+    order: 1;
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+
+  /* As designed, the pill tucks behind the tab bar with its first row (hint + save) peeking out;
+     the publish row shows at the end of the page. The tab bar grows by the home-indicator inset,
+     so the pill rises by the same amount. */
+  .footer {
+    bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  /* The pill sits higher than the tab bar's top, so clearing it clears both (max() keeps the global
+     tab-bar clearance should the pill ever be shorter). */
+  :global(html):has(.footer) {
+    scroll-padding-bottom: max(
+      calc(var(--ff-tabbar-h) + 16px + env(safe-area-inset-bottom)),
+      calc(var(--ff-editor-pill, 0px) + 12px + 16px + env(safe-area-inset-bottom))
+    );
+  }
+}

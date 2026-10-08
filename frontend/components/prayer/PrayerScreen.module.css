@@ -1,0 +1,89 @@
+/* Prototype screen 05 Prayer — the page frame, header and tabs. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 820px;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.titles {
+  margin-right: auto;
+}
+
+.title {
+  font-size: clamp(30px, 6vw, 44px);
+  margin: 0;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--color-neutral-700);
+}
+
+.add {
+  min-height: 46px;
+  padding-inline: 20px;
+  font-size: 15px;
+  gap: 8px;
+}
+
+.seg {
+  align-self: flex-start;
+}
+
+/* — active — */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* — answered — */
+
+.intro {
+  margin: 0;
+  color: var(--color-neutral-800);
+  max-width: 56ch;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 16px;
+}
+
+/* — loading: quiet placeholders in the shapes that are coming, no shimmer — */
+
+.skeleton {
+  display: contents;
+}
+
+.skSeg {
+  align-self: flex-start;
+  width: 216px;
+  height: 41px;
+  border-radius: 999px;
+  background: var(--color-neutral-100);
+  opacity: 0.7;
+}
+
+.skCard {
+  height: 190px;
+  border-radius: 30px;
+  background: var(--color-surface);
+  opacity: 0.55;
+}
+
+.skAnswered {
+  composes: skCard;
+  background: var(--color-accent-2-100);
+}

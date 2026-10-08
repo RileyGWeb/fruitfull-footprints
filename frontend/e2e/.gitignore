@@ -1,0 +1,3 @@
+# Playwright output: the saved session, and the traces and screenshots of failures.
+/.auth/
+/.results/

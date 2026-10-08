@@ -1,0 +1,7 @@
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-heading);
+  line-height: 1.55;
+}

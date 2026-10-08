@@ -1,0 +1,97 @@
+/* Shared by every dialog: the shell plus the prototype's button treatments. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: color-mix(in srgb, var(--color-neutral-900) 45%, transparent);
+}
+
+.upper {
+  background: color-mix(in srgb, var(--color-neutral-900) 22%, transparent);
+}
+
+/* Locked out: the dialog waits (with what was typed) behind the Entrance. */
+.hidden {
+  visibility: hidden;
+}
+
+.dialog {
+  margin: auto;
+  width: min(460px, 100%);
+  min-width: 0;
+  background: var(--color-bg);
+  padding: 26px;
+  /* A pasted link or a long unbroken word wraps instead of pushing the dialog sideways. */
+  overflow-wrap: anywhere;
+}
+
+.dialog:focus-visible {
+  outline: none;
+}
+
+.title {
+  font-size: 24px;
+}
+
+/* — buttons — */
+
+.cancel {
+  color: var(--color-neutral-800);
+}
+
+.submit {
+  min-height: 44px;
+  padding-inline: 20px;
+}
+
+.danger,
+.danger:active {
+  background: var(--color-accent-700);
+}
+
+.danger:hover {
+  background: var(--color-accent-800);
+}
+
+.sage,
+.sage:active {
+  background: var(--color-accent-2-700);
+}
+
+.sage:hover {
+  background: var(--color-accent-2-800);
+}
+
+/* A quiet destructive/secondary action on its own row (“Remove from group”). */
+.quiet {
+  position: relative;
+  align-self: flex-start;
+  font-size: 13.5px;
+  color: var(--color-accent-700);
+  gap: 5px;
+}
+
+/* 44px touch target around the 36px button, without changing how it looks. */
+.quiet::after {
+  content: '';
+  position: absolute;
+  inset: -5px 0;
+}
+
+.body {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-neutral-800);
+}
+
+.error {
+  font-size: 13px;
+  color: var(--color-accent-700);
+  padding: 0 14px;
+  margin: -4px 0 0;
+}

@@ -1,0 +1,82 @@
+/* — skeletons: the surface colour, faded, in the real layout's shapes — */
+
+.block,
+.bar {
+  background: var(--color-surface);
+  opacity: 0.55;
+}
+
+.bar {
+  border-radius: 999px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+}
+
+.card {
+  height: 224px;
+  border-radius: 30px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 760px;
+}
+
+.month {
+  width: 110px;
+  height: 20px;
+  margin: 0 0 4px;
+}
+
+.row {
+  height: 66px;
+  border-radius: 22px;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.profileHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  align-items: center;
+}
+
+.avatar {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+}
+
+.lines {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.name {
+  width: min(320px, 80%);
+  height: 38px;
+}
+
+.tags {
+  width: min(260px, 70%);
+  height: 28px;
+}
+
+.prayer {
+  height: 150px;
+  max-width: 640px;
+  border-radius: 26px;
+}

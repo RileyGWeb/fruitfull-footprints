@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fruitfull
+      POSTGRES_PASSWORD: fruitfull
+      POSTGRES_DB: fruitfull
+    ports:
+      # Loopback only: the credentials above are in the repo, so the dev database must not be
+      # reachable from the network. Laravel and the tests connect to 127.0.0.1:5490.
+      - "127.0.0.1:5490:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Creates the fruitfull_test database used by `php artisan test`.
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fruitfull"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
