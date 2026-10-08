@@ -1,0 +1,50 @@
+name: Deploy to sandbox
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-fruitfull
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::956315450098:role/github-actions-sandbox-deploy
+          aws-region: us-east-1
+
+      - name: Deploy via SSM
+        run: |
+          set -euo pipefail
+          COMMAND_ID=$(aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=tag:Name,Values=sandbox-apps-host" \
+            --parameters 'commands=["/opt/apps/scripts/deploy-fruitfull.sh"]' \
+            --comment "fruitfull-footprints deploy ${GITHUB_SHA::8}" \
+            --query 'Command.CommandId' --output text)
+          echo "SSM command: $COMMAND_ID"
+
+          for i in $(seq 1 60); do
+            STATUS=$(aws ssm list-command-invocations --command-id "$COMMAND_ID" --details \
+              --query 'CommandInvocations[0].Status' --output text 2>/dev/null || echo "Pending")
+            echo "status: $STATUS"
+            case "$STATUS" in
+              Success) break ;;
+              Failed|Cancelled|TimedOut)
+                aws ssm list-command-invocations --command-id "$COMMAND_ID" --details \
+                  --query 'CommandInvocations[0].CommandPlugins[0].Output' --output text
+                exit 1 ;;
+            esac
+            sleep 5
+          done
+
+          aws ssm list-command-invocations --command-id "$COMMAND_ID" --details \
+            --query 'CommandInvocations[0].CommandPlugins[0].Output' --output text

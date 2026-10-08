@@ -1,0 +1,21 @@
+# Documentation only — the source of truth is /opt/apps/docker-compose.yml on the host. This is
+# the block appended there for this app (see README.md). No new top-level `volumes:` or
+# `networks:` entries are needed: everything shares the existing `postgres_data` volume (via the
+# shared `postgres` service) and the existing `apps` bridge network.
+
+services:
+  fruitfull-backend:
+    build: ./fruitfull-footprints/backend
+    restart: unless-stopped
+    volumes:
+      - ./fruitfull-footprints/backend/.env.production:/var/www/html/.env:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [apps]
+
+  fruitfull-frontend:
+    build:
+      context: ./fruitfull-footprints/frontend
+    restart: unless-stopped
+    networks: [apps]

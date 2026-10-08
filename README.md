@@ -89,15 +89,18 @@ scripts/            dev-up.sh / dev-down.sh
 
 ## Hosting
 
-Hosting isn't set up yet; the deploy checklist is in
-[`backend/README.md#production`](backend/README.md#production). The essentials:
+Deployed at **fruitfullfootprints.club**, on a shared sandbox AWS host alongside several other
+small apps — see [`infra/README.md`](infra/README.md) for the real topology, nginx config and
+deploy script, and [`backend/README.md#production`](backend/README.md#production) for the
+generic checklist. Push to `main` deploys automatically (`.github/workflows/deploy.yml`, via SSM
+— no image registry, the host builds the containers from a git checkout). In short:
 
-- Put an HTTPS reverse proxy (nginx or Caddy) in front of Next, and make it **append the client's
-  address to `X-Forwarded-For`**. Next passes the header through untouched, and the unlock
-  throttle keys on it, so without such a proxy anyone can pick the address they're throttled by.
-- **Never expose Next or Laravel directly**: both listen on loopback, behind that proxy.
-- `BACKEND_URL` is baked into the Next build's rewrites, so set it at build time; the API and the
-  app share an origin through that proxy.
+- A reverse proxy (nginx, on this deployment) terminates TLS and must append the client's real
+  address to the header Laravel reads (`X-Forwarded-For` over HTTP, or
+  `HTTP_X_FORWARDED_FOR` over FastCGI) — the unlock throttle keys on it, so without this anyone
+  can pick the address they're throttled by. **Never expose Next or Laravel directly.**
+- `TRUSTED_PROXIES` must list that proxy layer's actual network (never `*` — see
+  `backend/README.md#production` §5 for why it silently does nothing).
 - Each `next build` gets a fresh build id, which versions the service worker so every deploy
   installs a new one. Set `FF_BUILD_ID` (e.g. the commit sha) to choose it; it must change with
   every deploy.

@@ -34,6 +34,9 @@ const CSP = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  // A self-contained server.js + pruned node_modules under .next/standalone, for the production
+  // Docker image (see ../infra/README.md). No effect on `next dev`.
+  output: 'standalone',
   devIndicators: false,
   poweredByHeader: false,
   generateBuildId: () => BUILD_ID,
