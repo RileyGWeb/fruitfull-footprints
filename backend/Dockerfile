@@ -1,6 +1,6 @@
 # Production image for the shared sandbox host (see ../infra/README.md). php-fpm only — nginx on
 # the host talks to this over FastCGI on :9000 for /api/*; it never serves HTTP itself.
-FROM php:8.4-fpm-alpine
+FROM php:8.4.27-fpm-alpine
 
 RUN apk add --no-cache \
         postgresql-dev \
