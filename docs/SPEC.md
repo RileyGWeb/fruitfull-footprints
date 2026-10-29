@@ -558,11 +558,16 @@ pwa have no barrels; import from the files.
 - **Install screen** (`components/shell/InstallGate.tsx`, `useMustInstall()` in `components/settings/install.ts`):
   a phone or tablet (by user agent, plus an iPad posing as a Mac by its touch screen) whose page isn't running as
   the installed app (`display-mode` standalone / fullscreen / minimal-ui / window-controls-overlay, or iOS
-  `navigator.standalone`) shows only this: one **Install the app** button where the browser has offered the install
-  sheet (`beforeinstallprompt`), the Share → Add to Home Screen steps on iOS, the browser-menu steps elsewhere, a
-  “you're in another app's browser, open this in Safari or Chrome” note inside Facebook, Instagram and friends, and
-  “It's on your phone now” once installed. Nothing on it signs in, whatever the URL (deep links included). Known
-  only on the client, so the server render and first paint are the splash. Computers never see it.
+  `navigator.standalone`) shows only this. Each step shows a drawing of what to tap (the Share button, the “Add to
+  Home Screen” row, the Add button, then the app's own home-screen icon) beside one plain line, because words
+  alone didn't work for someone who had never added an app. **Safari on iPhone/iPad** gets four steps (Share, scroll
+  to Add to Home Screen, Add with “Open as Web App” left on, open the icon) and a closed “Something not right?” with
+  the usual answers; **Chromium** with the install sheet ready gets one **Install the app** button; other Android
+  browsers get the browser-menu steps; **any other browser on an iPhone, and the browsers inside Facebook,
+  Instagram and friends**, are asked to open the page in Safari (Chrome on Android) and given a **Copy link**
+  button, since only Safari's steps are known; “It's on your phone now” once installed. A line says where to get a
+  password (a leader). Nothing on it signs in, whatever the URL (deep links included). Known only on the client,
+  so the server render and first paint are the splash. Computers never see it.
 - `next.config.ts` sends security headers on every Next response (CSP without `script-src`,
   `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy: same-origin`, `Permissions-Policy`) and no
   `X-Powered-By`. External images, fonts, frames or fetches need a CSP change.

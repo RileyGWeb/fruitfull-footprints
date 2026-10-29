@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
-import { isInAppBrowser, isMobileBrowser, isMobileDevice } from './install.ts';
+import { isInAppBrowser, isIPad, isMobileBrowser, isMobileDevice, isSafariOnIOS } from './install.ts';
 
 const UA = {
   iphone: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
@@ -13,6 +13,9 @@ const UA = {
   mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
   windows: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
   linux: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+  firefoxIos: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/130.0 Mobile/15E148 Safari/605.1.15',
+  edgeIos: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 EdgiOS/130.0 Mobile/15E148 Safari/605.1.15',
+  webView: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
   facebook: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/480.0.0.0]',
   instagram: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 Instagram 330.0.0.0',
 };
@@ -108,5 +111,44 @@ describe('isInAppBrowser', () => {
       browser(ua);
       assert.equal(isInAppBrowser(), false, ua);
     }
+  });
+});
+
+describe('isSafariOnIOS (the one browser whose steps are known)', () => {
+  it('is Safari on an iPhone, and on an iPad that asks for desktop sites', () => {
+    browser(UA.iphone);
+    assert.equal(isSafariOnIOS(), true);
+    browser(UA.ipad, { touchPoints: 5 });
+    assert.equal(isSafariOnIOS(), true);
+  });
+
+  it('is not the other browsers on an iPhone, nor a bare web view', () => {
+    for (const ua of [UA.iphoneChrome, UA.firefoxIos, UA.edgeIos, UA.webView]) {
+      browser(ua);
+      assert.equal(isSafariOnIOS(), false, ua);
+    }
+  });
+
+  it('is not anything on Android or a computer', () => {
+    for (const ua of [UA.androidChrome, UA.windows, UA.mac]) {
+      browser(ua);
+      assert.equal(isSafariOnIOS(), false, ua);
+    }
+  });
+});
+
+describe('isIPad', () => {
+  it('knows an iPad, including the one posing as a Mac', () => {
+    browser(UA.ipad, { touchPoints: 5 });
+    assert.equal(isIPad(), true);
+    browser('Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148');
+    assert.equal(isIPad(), true);
+  });
+
+  it('is not an iPhone, nor a Mac without a touch screen', () => {
+    browser(UA.iphone);
+    assert.equal(isIPad(), false);
+    browser(UA.mac, { touchPoints: 0 });
+    assert.equal(isIPad(), false);
   });
 });

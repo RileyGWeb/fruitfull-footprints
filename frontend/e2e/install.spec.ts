@@ -7,6 +7,7 @@ import { expect, h1, test } from './fixtures';
 
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
 const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
+const CHROME_IOS = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0.6723.90 Mobile/15E148 Safari/604.1';
 const FACEBOOK = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/480.0.0.0]';
 
 const phone = (userAgent: string) => ({
@@ -24,8 +25,14 @@ test('an iPhone in Safari is shown how to add the app, and there is nothing to s
   try {
     await page.goto('/people/1'); // even a deep link
     await expect(h1(page, 'Fruitfull Footprints')).toBeVisible();
-    await expect(page.getByText('Add to Home Screen')).toBeVisible();
-    await expect(page.getByText('Open Footprints from your home screen to sign in')).toBeVisible();
+    // Four steps, each saying what to tap, ending at the icon on the home screen.
+    const steps = page.getByRole('listitem');
+    await expect(steps).toHaveCount(4);
+    await expect(steps.nth(0)).toContainText('Tap the Share button');
+    await expect(steps.nth(1)).toContainText('Scroll down and tap Add to Home Screen');
+    await expect(steps.nth(2)).toContainText('Open as Web App');
+    await expect(steps.nth(3)).toContainText('Open Footprints from your home screen');
+    await expect(page.getByText('Something not right?')).toBeVisible();
     await expect(page.getByLabel('Your password')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Open', exact: true })).toHaveCount(0);
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
@@ -42,7 +49,7 @@ test('Chrome on Android offers one Install button, and says it’s done', async 
     await page.goto('/');
     await expect(h1(page, 'Fruitfull Footprints')).toBeVisible();
     // Until the browser says it can install the app, the way to do it from the menu.
-    await expect(page.getByText('Add to Home screen')).toBeVisible();
+    await expect(page.getByRole('listitem').nth(1)).toContainText('Add to Home screen');
     await expect(page.getByLabel('Your password')).toHaveCount(0);
 
     await page.evaluate(() => {
@@ -59,15 +66,21 @@ test('Chrome on Android offers one Install button, and says it’s done', async 
   }
 });
 
-test('inside another app’s browser it says to open the page somewhere that can install it', async ({ browser }) => {
-  const context = await browser.newContext(phone(FACEBOOK));
-  const page = await context.newPage();
-  try {
-    await page.goto('/');
-    await expect(page.getByText('Open this page in Safari or Chrome first')).toBeVisible();
-    await expect(page.getByLabel('Your password')).toHaveCount(0);
-  } finally {
-    await context.close();
+test('inside another app’s browser, or Chrome on an iPhone, it says to open the page in Safari, and copies the link', async ({ browser }) => {
+  for (const userAgent of [FACEBOOK, CHROME_IOS]) {
+    const context = await browser.newContext({ ...phone(userAgent), permissions: ['clipboard-read', 'clipboard-write'] });
+    const page = await context.newPage();
+    try {
+      await page.goto('/');
+      await expect(page.getByText('open Safari, and paste it into the address bar')).toBeVisible();
+      await expect(page.getByLabel('Your password')).toHaveCount(0);
+      await expect(page.getByRole('listitem')).toHaveCount(0);
+      await page.getByRole('button', { name: 'Copy link' }).click();
+      await expect(page.getByRole('button', { name: 'Link copied' })).toBeVisible();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/\/$/);
+    } finally {
+      await context.close();
+    }
   }
 });
 

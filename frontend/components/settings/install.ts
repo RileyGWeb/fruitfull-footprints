@@ -81,6 +81,18 @@ const getServerSnapshot = (): InstallState => 'unknown';
 export const isMobileDevice = () =>
   /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || isIOS();
 
+/** An iPad (which asks for desktop sites, so also a Mac with a touch screen): its Share button is at the top. */
+export const isIPad = () =>
+  /iPad/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+
+/**
+ * Safari itself, on an iPhone or iPad. Chrome, Firefox, Edge and the rest run on the same engine there but have
+ * menus of their own, and a bare web view (an app's own browser) has no Share menu, so none of them can be given
+ * Safari's steps with any confidence: they're asked to open the page in Safari instead.
+ */
+export const isSafariOnIOS = () =>
+  isIOS() && /Safari\//.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS|OPT\/|DuckDuckGo|GSA\/|YaBrowser|Brave/i.test(navigator.userAgent);
+
 /** The browser inside another app (Facebook, Instagram, Messenger…), which can't add anything to a home screen. */
 export const isInAppBrowser = () =>
   /FBAN|FBAV|FB_IAB|Instagram|Line\/|Snapchat|Twitter|MicroMessenger|LinkedInApp|Pinterest|TikTok|musical_ly/i.test(navigator.userAgent);
