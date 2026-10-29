@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { useDialogs } from '@/components/dialogs';
 import { Avatar, EmptyState, Icon, ScreenState } from '@/components/ui';
 import { today } from '@/lib/dates';
-import { useSnapshot } from '@/lib/hooks';
+import { useAccess, useSnapshot } from '@/lib/hooks';
 import { CardsSkeleton } from './LoadStates';
 import { PeopleHeader } from './PeopleHeader';
 import { personCards, type PersonCardView } from './people';
@@ -15,6 +15,7 @@ import s from './People.module.css';
 export function Everyone() {
   const { data, error, mutate } = useSnapshot();
   const { addPerson } = useDialogs();
+  const access = useAccess();
   const cards = useMemo(() => (data ? personCards(data.members, data.prayers, today()) : []), [data]);
 
   let body;
@@ -25,12 +26,12 @@ export function Everyone() {
         level={2}
         icon="users"
         title="No one here yet"
-        body="Add the first person, and the group starts to fill in from there."
-        action={<button type="button" className={`btn btn-secondary ${s.add}`} onClick={() => void addPerson()}><Icon name="plusSm" /> Add person</button>}
+        body={access.isLeader ? 'Add the first person, and the group starts to fill in from there.' : 'A leader will add everyone here.'}
+        action={access.isLeader ? <button type="button" className={`btn btn-secondary ${s.add}`} onClick={() => void addPerson()}><Icon name="plusSm" /> Add person</button> : undefined}
       />
     );
   } else {
-    body = <div className={s.grid}>{cards.map(c => <PersonCard key={c.member.id} card={c} />)}</div>;
+    body = <div className={s.grid}>{cards.map(c => <PersonCard key={c.member.id} card={c} isMe={access.isMe(c.member.id)} />)}</div>;
   }
 
   return (
@@ -41,7 +42,7 @@ export function Everyone() {
   );
 }
 
-function PersonCard({ card: c }: { card: PersonCardView }) {
+function PersonCard({ card: c, isMe }: { card: PersonCardView; isMe: boolean }) {
   return (
     <Link href={`/people/${c.member.id}`} className={`unstyled ${s.card}`}>
       <div className={s.who}>
@@ -54,6 +55,8 @@ function PersonCard({ card: c }: { card: PersonCardView }) {
       {c.gifts && <div className={s.gifts}>{c.gifts}</div>}
       {c.line && <p className={s.line}>{c.line}</p>}
       <div className={s.tags}>
+        {c.member.role === 'leader' && <span className="tag tag-accent-2">Leader</span>}
+        {isMe && <span className="tag tag-outline">You</span>}
         <span className="tag tag-neutral">{c.prayerLabel}</span>
         {c.soon && <span className="tag tag-accent">{c.soon}</span>}
       </div>

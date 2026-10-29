@@ -48,6 +48,16 @@ ever recreated, since compose doesn't guarantee the same subnet).
 1. **Secrets Manager**: `sandbox/apps/fruitfull/env` (flat JSON → `.env`, see
    `deploy-fruitfull.sh`) and `sandbox/apps/fruitfull/deploy-key` (a dedicated read-only GitHub
    deploy key, private half only — the public half is on the repo's Settings → Deploy keys).
+   The env secret holds `SUPER_ADMIN_PASSWORD_HASH`: the **bcrypt hash** (never the password) of the
+   hidden super admin, who signs in with the password alone, belongs to no profile and can do everything
+   (it's how the first leaders get their logins). The deploy script writes every key as `KEY="value"`,
+   double-quoted, so the `$` in a bcrypt hash survives. To change it: put a new hash in the secret
+   (`aws secretsmanager put-secret-value --profile sandbox-admin`, keeping every other key) and redeploy;
+   the super admin is then signed out everywhere. Make a hash with
+   `php artisan tinker --execute 'echo bcrypt("the password");'`. (`GROUP_PASSWORD` is still in the secret
+   from when everyone shared one password; nothing reads it any more.) Everyone else's password is in the
+   database (a bcrypt hash plus a lookup keyed by `APP_KEY`: rotating `APP_KEY` means setting every
+   password again).
 2. **Database**: a role + database created once on the shared `postgres` service
    (`docker compose exec postgres psql -U postgres`), see `/opt/apps/scripts/create-databases.sh`
    on the host for the pattern (and note: Postgres 15+ revokes `CREATE` on the `public` schema
@@ -65,8 +75,9 @@ ever recreated, since compose doesn't guarantee the same subnet).
    this directory — it's documentation, the host's copy is the one that runs).
 6. **Deploy script**: `/opt/apps/scripts/deploy-fruitfull.sh` on the host (same shape as every
    other app's — fetch the deploy key, `git fetch`/`reset --hard origin/main`, write the env
-   secret to `.env.production`, `docker compose build`/`up -d`, `migrate --force`,
-   `config:cache`, restart nginx).
+   secret to `.env.production`, `docker compose build`/`up -d`, `migrate --force`, `db:seed --force`,
+   `config:cache`, restart nginx). It seeds on every deploy, so `DatabaseSeeder` only ever adds
+   missing default settings and never touches anyone's data.
 7. **GitHub Actions role**: `github-actions-sandbox-deploy`'s OIDC trust policy whitelists repos
    by `sub` claim (`repo:RileyGWeb*/<name>*:ref:refs/heads/main`) — a new app's repo must be added
    there before its workflow can assume the role. **The default branch must be `main`** — the

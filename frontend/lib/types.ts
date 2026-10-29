@@ -6,6 +6,12 @@ export type PrayerStatus = 'active' | 'answered';
 export type StudyStatus = 'draft' | 'published';
 export type SectionType = 'text' | 'scripture' | 'questions' | 'reflect' | 'prayer';
 
+/** What a person is in the group. */
+export type Role = 'member' | 'leader';
+
+/** Who is signed in: a person (member or leader), or the hidden super admin, who has no profile. */
+export type Viewer = { role: Role | 'super'; member_id: number | null; name: string | null };
+
 export type Settings = {
   group_name: string;
   tagline: string;
@@ -21,6 +27,8 @@ export type GroupInfo = {
   meeting_day: string;
   since_year: number;
   unlocked: boolean;
+  /** Null when nobody is signed in on this device. */
+  viewer: Viewer | null;
 };
 
 export type MemberDate = {
@@ -38,6 +46,7 @@ export type Member = {
   id: number;
   name: string;
   tone: Tone;
+  role: Role;
   gifts: string[];
   line: string | null;
   family: string | null;
@@ -45,6 +54,8 @@ export type Member = {
   good_to_know: string | null;
   dates: MemberDate[];
   created_at: string;
+  /** Whether they can sign in at all. Only leaders are told. */
+  has_login?: boolean;
 };
 
 export type PrayerUpdate = { id: number; prayer_request_id: number; body: string; created_at: string };
@@ -108,6 +119,10 @@ export type MemberInput = {
   family?: string | null;
   interests?: string | null;
   good_to_know?: string | null;
+  /** Leaders only. */
+  role?: Role;
+  /** Leaders only: their login. At least 8 characters, and nobody else's. Left out, it stays as it is. */
+  password?: string;
 };
 
 /**
@@ -138,5 +153,3 @@ export type StudyInput = {
    */
   expected_updated_at?: string;
 };
-
-export type PasswordInput = { current_password: string; password: string; password_confirmation: string };

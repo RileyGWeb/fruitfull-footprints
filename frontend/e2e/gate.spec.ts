@@ -1,4 +1,4 @@
-// The Entrance: one shared password; deep links wait behind it; Lock signs this device out.
+// The Entrance: everyone signs in with a password of their own; deep links wait behind it; Lock signs this device out.
 // These tests start from a device with no session (they never touch the shared one).
 import { GROUP_NAME, PASSWORD } from './env';
 import { expect, h1, test } from './fixtures';
@@ -13,21 +13,21 @@ test('a deep link waits behind the gate, refuses a wrong password, then opens wh
   await page.goto('/people/1');
   await expect(h1(page, GROUP_NAME)).toBeVisible();
   await expect(page).toHaveTitle(GROUP_NAME);
-  const password = page.getByLabel('Group password');
+  const password = page.getByLabel('Your password');
 
   const tryAgain = page.getByRole('alert').filter({ hasText: 'Try that once more.' });
-  await page.getByRole('button', { name: 'Open' }).click();
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
   await expect(tryAgain).toBeVisible(); // empty: asked again, nothing sent
 
   await password.fill('not the password');
   const refused = page.waitForResponse(r => r.url().endsWith('/api/unlock'));
-  await page.getByRole('button', { name: 'Open' }).click();
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
   expect((await refused).status()).toBe(422);
   await expect(tryAgain).toBeVisible();
   await expect(password).toHaveAttribute('aria-invalid', 'true');
 
   await password.fill(PASSWORD);
-  await page.getByRole('button', { name: 'Open' }).click();
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
   await expect(h1(page, 'Rachel Owens')).toBeVisible();
   await expect(page).toHaveURL(/\/people\/1$/);
   await expect(page).toHaveTitle(`Rachel Owens · ${GROUP_NAME}`);
@@ -35,15 +35,15 @@ test('a deep link waits behind the gate, refuses a wrong password, then opens wh
 
 test('Lock puts this device behind the gate, and it stays locked across reloads', async ({ page }) => {
   await page.goto('/prayer');
-  await page.getByLabel('Group password').fill(PASSWORD);
-  await page.getByRole('button', { name: 'Open' }).click();
+  await page.getByLabel('Your password').fill(PASSWORD);
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
   await expect(h1(page, 'Prayer')).toBeVisible();
   // Unsaved study writing kept from an earlier visit goes too, even though no editor is open now.
   await page.evaluate(() => localStorage.setItem('ff:editor-draft:new', '{"v":1}'));
 
   const locked = page.waitForResponse(r => r.url().endsWith('/api/lock') && r.request().method() === 'POST');
   await page.getByRole('button', { name: 'Lock', exact: true }).click();
-  await expect(page.getByLabel('Group password')).toBeVisible();
+  await expect(page.getByLabel('Your password')).toBeVisible();
   await expect(page).toHaveURL(/\/$/); // Lock goes Home
   await expect(page).toHaveTitle(GROUP_NAME);
   expect((await locked).status()).toBe(204);
@@ -53,16 +53,16 @@ test('Lock puts this device behind the gate, and it stays locked across reloads'
   expect((await page.request.get('/api/snapshot', { headers: { Accept: 'application/json' } })).status()).toBe(401);
 
   await page.reload();
-  await expect(page.getByLabel('Group password')).toBeVisible();
+  await expect(page.getByLabel('Your password')).toBeVisible();
   await page.goto('/studies');
-  await expect(page.getByLabel('Group password')).toBeVisible();
+  await expect(page.getByLabel('Your password')).toBeVisible();
   await expect(h1(page, 'Studies')).toHaveCount(0);
 });
 
 test('Lock from unsaved study writing asks first, and Back afterwards skips the editor', async ({ page }) => {
   await page.goto('/studies');
-  await page.getByLabel('Group password').fill(PASSWORD);
-  await page.getByRole('button', { name: 'Open' }).click();
+  await page.getByLabel('Your password').fill(PASSWORD);
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
   await expect(h1(page, 'Studies')).toBeVisible();
   await page.getByRole('link', { name: 'New study' }).click();
   await expect(h1(page, 'New study')).toBeVisible();
@@ -71,11 +71,11 @@ test('Lock from unsaved study writing asks first, and Back afterwards skips the 
   await page.getByRole('button', { name: 'Lock', exact: true }).click();
   const ask = page.getByRole('dialog', { name: 'Lock without saving?' });
   await ask.getByRole('button', { name: 'Lock', exact: true }).click();
-  await expect(page.getByLabel('Group password')).toBeVisible();
+  await expect(page.getByLabel('Your password')).toBeVisible();
   await expect(page).toHaveURL(/\/$/);
 
-  await page.getByLabel('Group password').fill(PASSWORD);
-  await page.getByRole('button', { name: 'Open' }).click();
+  await page.getByLabel('Your password').fill(PASSWORD);
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: /friends\.$/ })).toBeVisible();
   await page.goBack();
   await expect(h1(page, 'Studies')).toBeVisible();

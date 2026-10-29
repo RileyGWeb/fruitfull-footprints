@@ -2,8 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Settings } from '@/lib/types';
 import {
-  EMPTY_PASSWORD, PASSWORD_FIELDS, SETTINGS_FIELDS, firstError, hasChanges, passwordServerErrors, sameForm, settingsPatch, settingsServerErrors,
-  toForm, validatePassword, validateSettings,
+  SETTINGS_FIELDS, firstError, hasChanges, sameForm, settingsPatch, settingsServerErrors, toForm, validateSettings,
 } from './form.ts';
 
 const BASE: Settings = {
@@ -60,27 +59,4 @@ test('settings 422s map onto fields, and anything else onto `other`', () => {
   });
   assert.deepEqual(settingsServerErrors({ empty: [] }), {});
   assert.deepEqual(settingsServerErrors(undefined), {});
-});
-
-test('password validation', () => {
-  assert.deepEqual(Object.keys(validatePassword(EMPTY_PASSWORD)), ['current_password', 'password']);
-  assert.match(validatePassword({ current_password: 'x', password: 'abc', password_confirmation: 'abc' }).password!, /6 characters/);
-  assert.ok(validatePassword({ current_password: 'x', password: 'abcdef', password_confirmation: 'abcdeg' }).password_confirmation);
-  assert.deepEqual(validatePassword({ current_password: 'x', password: 'abcdef', password_confirmation: 'abcdef' }), {});
-});
-
-test('password 422s map onto fields in our words', () => {
-  const e = passwordServerErrors({
-    current_password: ['That isn’t the current password.'],
-    password: ['The password field must be at least 6 characters.', 'The password field confirmation does not match.'],
-  });
-  assert.equal(e.current_password, 'That isn’t the current password.');
-  assert.equal(e.password, 'At least 6 characters, please.');
-  assert.equal(e.password_confirmation, 'These two don’t match yet.');
-  assert.equal(firstError(PASSWORD_FIELDS, e), 'current_password');
-  assert.deepEqual(passwordServerErrors({ password: ['The password field confirmation does not match.'] }), { password_confirmation: 'These two don’t match yet.' });
-  assert.deepEqual(passwordServerErrors({ password_confirmation: ['Type it again.'], session: ['Try again in a minute.'] }), {
-    password_confirmation: 'Type it again.',
-    other: 'Try again in a minute.',
-  });
 });

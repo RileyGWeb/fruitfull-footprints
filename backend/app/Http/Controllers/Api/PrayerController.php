@@ -7,6 +7,7 @@ use App\Http\Requests\SavePrayerRequest;
 use App\Http\Resources\PrayerResource;
 use App\Models\PrayerRequest;
 use App\Services\ActivityLog;
+use App\Services\Viewer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -36,8 +37,10 @@ class PrayerController extends Controller
         return new PrayerResource($prayer);
     }
 
-    public function destroy(PrayerRequest $prayer): Response
+    public function destroy(Request $request, PrayerRequest $prayer): Response
     {
+        Viewer::from($request)->authorize('manage', $prayer);
+
         $prayer->delete();
 
         return response()->noContent();
@@ -48,6 +51,8 @@ class PrayerController extends Controller
      */
     public function answer(Request $request, PrayerRequest $prayer, ActivityLog $activity): PrayerResource
     {
+        Viewer::from($request)->authorize('manage', $prayer);
+
         $data = $request->validate(['answer' => ['nullable', 'string', 'max:2000']], [
             'answer.string' => 'This needs to be text.',
             'answer.max' => 'Keep it under 2,000 characters.',
@@ -66,8 +71,10 @@ class PrayerController extends Controller
         return new PrayerResource($prayer);
     }
 
-    public function reopen(PrayerRequest $prayer): PrayerResource
+    public function reopen(Request $request, PrayerRequest $prayer): PrayerResource
     {
+        Viewer::from($request)->authorize('manage', $prayer);
+
         $prayer->update(['status' => 'active', 'answer' => null, 'answered_at' => null]);
 
         return new PrayerResource($prayer);

@@ -4,18 +4,22 @@ import { studyKicker, verseOf } from '@/lib/studies';
 import type { StudySummary } from '@/lib/types';
 import s from './Studies.module.css';
 
-type Props = { study: StudySummary | null; now: Date };
+type Props = { study: StudySummary | null; now: Date; /** Leaders write the studies; everyone else just waits for them. */ canWrite: boolean };
 
 /** The big sand “Up next” card — or, with nothing published ahead, the same card inviting someone to prepare one. */
-export function UpNextCard({ study, now }: Props) {
+export function UpNextCard({ study, now, canWrite }: Props) {
   if (!study) {
     return (
       <section className={s.week} aria-labelledby="up-next-empty">
         <div className={s.weekBlob} aria-hidden />
         <div className={s.weekKicker}>Up next</div>
         <h2 id="up-next-empty" className={s.weekEmptyTitle}>No study posted yet</h2>
-        <p className={s.weekEmptyBody}>Nothing’s been published for the weeks ahead. Whoever’s leading next can start the notes here.</p>
-        <Link href="/studies/new" className={`btn btn-primary ${s.read}`}>Prepare a study</Link>
+        <p className={s.weekEmptyBody}>
+          {canWrite
+            ? 'Nothing’s been published for the weeks ahead. Whoever’s leading next can start the notes here.'
+            : 'Nothing’s been published for the weeks ahead. The notes will show up here once a leader posts them.'}
+        </p>
+        {canWrite && <Link href="/studies/new" className={`btn btn-primary ${s.read}`}>Prepare a study</Link>}
       </section>
     );
   }

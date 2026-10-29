@@ -1,5 +1,5 @@
-// Settings: the group's details save (only what changed), and bad input is caught under its field.
-// The password card is deliberately untested here: changing it would lock every other device out.
+// Settings (as a leader): the group's details save (only what changed), and bad input is caught under its field.
+// What a member sees instead is in roles.spec.ts.
 import type { Settings } from '@/lib/types';
 import { expect, expectToast, h1, open, test } from './fixtures';
 

@@ -21,47 +21,34 @@ class SeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_the_database_seeder_writes_defaults_and_the_env_password(): void
+    public function test_the_database_seeder_writes_the_default_settings_and_no_logins(): void
     {
-        config(['group.password' => 'footprints']);
-
         $this->seed(DatabaseSeeder::class);
 
         $stored = DB::table('settings')->pluck('value', 'key')->map(fn (string $value): mixed => json_decode($value, true));
-        $this->assertEquals(Settings::DEFAULTS, $stored->except('password_hash')->all());
-        $this->assertTrue(app(Settings::class)->checkPassword('footprints'));
-        $this->assertSame(1, app(Settings::class)->passwordVersion());
+        $this->assertEquals(Settings::DEFAULTS, $stored->all());
+        $this->assertSame(0, Member::count());
+        $this->postJson('/api/unlock', ['password' => 'footprints'])->assertServiceUnavailable();
     }
 
     public function test_the_database_seeder_never_overwrites_anything(): void
     {
-        config(['group.password' => 'footprints']);
         $this->seed(DatabaseSeeder::class);
-        $hash = DB::table('settings')->where('key', 'password_hash')->value('value');
         app(Settings::class)->set(['group_name' => 'Renamed']);
+        $leader = Member::factory()->leader()->withLogin('porch-light-on')->create();
 
-        config(['group.password' => 'something-else']);
+        // The deploy seeds again every time.
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertSame($hash, DB::table('settings')->where('key', 'password_hash')->value('value'));
         $this->assertSame('"Renamed"', DB::table('settings')->where('key', 'group_name')->value('value'));
-        $this->assertSame(8, DB::table('settings')->count());
-    }
-
-    public function test_without_group_password_no_password_is_set(): void
-    {
-        config(['group.password' => '']);
-
-        $this->seed(DatabaseSeeder::class);
-
-        $this->assertFalse(app(Settings::class)->hasPassword());
-        $this->postJson('/api/unlock', ['password' => ''])->assertServiceUnavailable();
+        $this->assertSame(count(Settings::DEFAULTS), DB::table('settings')->count());
+        $this->assertSame('leader', $leader->fresh()->role);
+        $this->postJson('/api/unlock', ['password' => 'porch-light-on'])->assertOk();
     }
 
     public function test_the_demo_seeder_loads_the_prototype(): void
     {
         Carbon::setTestNow('2026-10-07 18:00:00');
-        config(['group.password' => 'footprints']);
 
         $this->seed(DemoSeeder::class);
 
@@ -73,7 +60,21 @@ class SeederTest extends TestCase
         $this->assertSame(['Romans 9'], Study::where('status', 'draft')->pluck('ref')->all());
         $this->assertSame(8, Study::where('series', 'Psalms of Ascent')->where('status', 'published')->count());
         $this->assertSame(4, Activity::count());
-        $this->assertTrue(app(Settings::class)->checkPassword('footprints'));
+    }
+
+    public function test_the_demo_has_a_few_logins_to_try(): void
+    {
+        $this->seed(DemoSeeder::class);
+
+        $this->assertSame(
+            ['Rachel Owens' => 'leader', 'Sarah Lindqvist' => 'member', 'Mike Brennan' => 'leader'],
+            Member::whereNotNull('password_hash')->orderBy('id')->pluck('role', 'name')->all(),
+        );
+
+        foreach (DemoSeeder::LOGINS as $login) {
+            $this->flushSession();
+            $this->postJson('/api/unlock', ['password' => $login['password']])->assertOk()->assertJsonPath('viewer.role', $login['role']);
+        }
     }
 
     public function test_the_demo_matches_the_design_on_the_prototypes_today(): void

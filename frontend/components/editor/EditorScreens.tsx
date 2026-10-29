@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import { BackButton } from '@/components/ui/BackButton';
 import { NotFound, ScreenState } from '@/components/ui/ScreenState';
-import { useSnapshot, useStudy } from '@/lib/hooks';
+import { useAccess, useSnapshot, useStudy } from '@/lib/hooks';
 import { nextMeetingDate } from '@/lib/studies';
 import type { Study } from '@/lib/types';
 import { StudyEditor } from './StudyEditor';
@@ -13,8 +13,29 @@ import s from './Editor.module.css';
 /** A study id as the API routes accept it; anything else never reaches the API. */
 const isStudyId = (id: string | undefined) => /^\d{1,18}$/.test(id ?? '');
 
+/** Writing studies is for leaders: anyone else who lands on the editor (an old link) is shown the way back. */
+function LeadersOnly({ children }: { children: ReactNode }) {
+  const { isLeader } = useAccess();
+  if (isLeader) return children;
+  return (
+    <Frame>
+      <NotFound
+        title="That one’s for leaders"
+        body="Leaders write the studies. Everything that’s been published is on Studies."
+        href="/studies"
+        label="Back to Studies"
+        icon="book"
+      />
+    </Frame>
+  );
+}
+
 /** /studies/new — starts a week after the latest study (or on the next meeting day). */
 export function NewStudyScreen() {
+  return <LeadersOnly><NewStudy /></LeadersOnly>;
+}
+
+function NewStudy() {
   const { data, error } = useSnapshot();
   if (!data && !error) return <Frame busy><EditorSkeleton /></Frame>;
   // Without a snapshot (offline, nothing cached) you can still start writing; saving needs a connection.
@@ -28,6 +49,10 @@ export function NewStudyScreen() {
 
 /** /studies/[id]/edit */
 export function EditStudyScreen() {
+  return <LeadersOnly><EditStudy /></LeadersOnly>;
+}
+
+function EditStudy() {
   const { id } = useParams<{ id: string }>();
   const valid = isStudyId(id);
   const { data, error, mutate } = useStudy(valid ? id : null);

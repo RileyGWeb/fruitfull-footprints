@@ -1,5 +1,5 @@
 // Pure form logic for the Settings screen (no React), so it can be unit-tested with `npm test`.
-import type { PasswordInput, Settings } from '@/lib/types';
+import type { Settings } from '@/lib/types';
 
 export type FieldErrors<K extends string> = Partial<Record<K, string>>;
 
@@ -64,45 +64,6 @@ export function settingsServerErrors(errors?: Record<string, string[]>): FormErr
   const e: FormErrors<SettingsField> = {};
   for (const k of SETTINGS_FIELDS) if (errors?.[k]?.[0]) e[k] = errors[k][0];
   const other = otherErrors(errors, SETTINGS_FIELDS);
-  if (other) e.other = other;
-  return e;
-}
-
-// ── password ────────────────────────────────────────────────────────────────
-
-export type PasswordField = keyof PasswordInput;
-export const PASSWORD_FIELDS: PasswordField[] = ['current_password', 'password', 'password_confirmation'];
-export const EMPTY_PASSWORD: PasswordInput = { current_password: '', password: '', password_confirmation: '' };
-export const MIN_PASSWORD = 6;
-
-const TOO_SHORT = `At least ${MIN_PASSWORD} characters, please.`;
-const MISMATCH = 'These two don’t match yet.';
-
-export function validatePassword(f: PasswordInput): FieldErrors<PasswordField> {
-  const e: FieldErrors<PasswordField> = {};
-  if (!f.current_password) e.current_password = 'Type the password you use now.';
-  if (!f.password) e.password = 'Choose a new password.';
-  else if (f.password.length < MIN_PASSWORD) e.password = TOO_SHORT;
-  else if (f.password_confirmation !== f.password) e.password_confirmation = MISMATCH;
-  return e;
-}
-
-/**
- * A 422 from PUT /api/settings/password mapped onto the fields. `current_password` already reads
- * well (“That isn’t the current password.”); Laravel's stock min/confirmed lines get our wording,
- * a confirmation mismatch shows under the confirm field, and anything else goes in `other`.
- */
-export function passwordServerErrors(errors?: Record<string, string[]>): FormErrors<PasswordField> {
-  const e: FormErrors<PasswordField> = {};
-  const current = errors?.current_password?.[0];
-  if (current) e.current_password = current;
-  for (const m of errors?.password ?? []) {
-    if (/confirm/i.test(m)) e.password_confirmation ??= MISMATCH;
-    else e.password ??= /least|min/i.test(m) ? TOO_SHORT : m;
-  }
-  const confirm = errors?.password_confirmation?.[0];
-  if (confirm) e.password_confirmation ??= confirm;
-  const other = otherErrors(errors, PASSWORD_FIELDS);
   if (other) e.other = other;
   return e;
 }

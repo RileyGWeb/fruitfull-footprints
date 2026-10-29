@@ -67,7 +67,7 @@ export type Qa = {
   restoreSettings: (values: Partial<Settings>) => void;
 };
 
-export const test = base.extend<{ qa: Qa; pageErrors: string[] }>({
+export const test = base.extend<{ qa: Qa; pageErrors: string[]; devOverlay: void }>({
   qa: async ({ context }, provide, testInfo) => {
     const api = new Api(context);
     const uid = `${testInfo.project.name.charAt(0)}${Math.random().toString(36).slice(2, 7)}`;
@@ -100,6 +100,25 @@ export const test = base.extend<{ qa: Qa; pageErrors: string[] }>({
       });
     }
   },
+
+  // `next dev` draws a badge over the bottom-left corner (a <nextjs-portal>) even with `devIndicators: false`,
+  // right where the mobile tab bar's Home tab is, and its pointer-event capture swallows that tab's click. It
+  // isn't part of the app, so it's hidden here; an uncaught error still fails the test through `pageErrors`.
+  devOverlay: [
+    async ({ context }, provide) => {
+      await context.addInitScript(() => {
+        const hide = () => {
+          const style = document.createElement('style');
+          style.textContent = 'nextjs-portal { display: none !important; }';
+          (document.head ?? document.documentElement).append(style);
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hide, { once: true });
+        else hide();
+      });
+      await provide();
+    },
+    { auto: true },
+  ],
 
   // Uncaught exceptions in the page fail the test (console noise doesn't).
   pageErrors: [

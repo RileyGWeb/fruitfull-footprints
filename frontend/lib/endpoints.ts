@@ -1,8 +1,8 @@
 // One typed function per API endpoint (docs/SPEC.md §2.4).
 import { api } from './api.ts';
 import type {
-  DateInput, GroupInfo, Member, MemberDate, MemberInput, PasswordInput, Prayer, PrayerInput, PrayerPatch,
-  PrayerUpdate, Settings, Snapshot, Study, StudyInput,
+  DateInput, GroupInfo, Member, MemberDate, MemberInput, Prayer, PrayerInput, PrayerPatch,
+  PrayerUpdate, Settings, Snapshot, Study, StudyInput, Viewer,
 } from './types.ts';
 
 /** SWR keys. */
@@ -12,18 +12,19 @@ export const studyKey = (id: number | string) => `/api/studies/${id}`;
 
 // public
 export const getGroup = () => api.get<GroupInfo>(GROUP_KEY);
-export const unlock = (password: string) => api.post<{ unlocked: true }>('/api/unlock', { password });
+export const unlock = (password: string) => api.post<{ unlocked: true; viewer: Viewer }>('/api/unlock', { password });
 export const lock = () => api.post<void>('/api/lock');
 
 // snapshot & settings
 export const getSnapshot = () => api.get<Snapshot>(SNAPSHOT_KEY);
 export const updateSettings = (patch: Partial<Settings>) => api.patch<Settings>('/api/settings', patch);
-export const changePassword = (input: PasswordInput) => api.put<void>('/api/settings/password', input);
 
 // members
 export const createMember = (input: MemberInput) => api.post<Member>('/api/members', input);
 export const updateMember = (id: number, patch: Partial<MemberInput>) => api.patch<Member>(`/api/members/${id}`, patch);
 export const deleteMember = (id: number) => api.del(`/api/members/${id}`);
+/** Takes their password away: they stay in the group but can't sign in. */
+export const removeLogin = (id: number) => api.del<Member>(`/api/members/${id}/login`);
 
 // dates to remember
 export const createDate = (memberId: number, input: DateInput) => api.post<MemberDate>(`/api/members/${memberId}/dates`, input);

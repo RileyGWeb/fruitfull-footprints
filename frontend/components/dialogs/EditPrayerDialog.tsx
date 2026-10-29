@@ -7,7 +7,7 @@ import { Icon } from '@/components/ui/Icon';
 import { useActions } from '@/lib/actions';
 import { fieldErrors } from '@/lib/api';
 import { ago, toDay } from '@/lib/dates';
-import { useSnapshot } from '@/lib/hooks';
+import { useAccess, useSnapshot } from '@/lib/hooks';
 import type { Prayer } from '@/lib/types';
 import { useDialogs } from './context';
 import { FieldError, describedBy, focusFirstError, otherErrors, without, type Errors } from './FieldError';
@@ -21,6 +21,7 @@ export function EditPrayerDialog({ prayer, layer = 0, onDone }: Props) {
   const members = snap?.members ?? [];
   const live = snap?.prayers.find(p => p.id === prayer.id) ?? prayer;
   const actions = useActions();
+  const { isLeader } = useAccess();
   const { confirm } = useDialogs();
   const id = useId();
   const ids = { member_id: `${id}-for`, body: `${id}-text`, answer: `${id}-answer` };
@@ -51,7 +52,8 @@ export function EditPrayerDialog({ prayer, layer = 0, onDone }: Props) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!body.trim() || busy) return;
-    attempt(() => actions.updatePrayer(prayer.id, { member_id: memberId, body: body.trim(), ...(answered ? { answer: answer.trim() || null } : {}) }));
+    // Moving a request to someone else is for leaders; anyone else just edits the words.
+    attempt(() => actions.updatePrayer(prayer.id, { ...(isLeader ? { member_id: memberId } : {}), body: body.trim(), ...(answered ? { answer: answer.trim() || null } : {}) }));
   };
 
   const removeUpdate = async (updateId: number, index: number) => {
@@ -88,15 +90,19 @@ export function EditPrayerDialog({ prayer, layer = 0, onDone }: Props) {
   return (
     <Dialog open layer={layer} onClose={onDone} title="Edit request">
       <form className={d.form} onSubmit={submit}>
-        <div className="field">
-          <label htmlFor={ids.member_id}>For</label>
-          <select id={ids.member_id} className={`input ${d.select}`} value={memberId}
-            onChange={e => { setMemberId(Number(e.target.value)); clear('member_id'); }}
-            {...describedBy(`${ids.member_id}-err`, errors.member_id)}>
-            {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-          </select>
-        </div>
-        <FieldError id={`${ids.member_id}-err`} text={errors.member_id} />
+        {isLeader && (
+          <>
+            <div className="field">
+              <label htmlFor={ids.member_id}>For</label>
+              <select id={ids.member_id} className={`input ${d.select}`} value={memberId}
+                onChange={e => { setMemberId(Number(e.target.value)); clear('member_id'); }}
+                {...describedBy(`${ids.member_id}-err`, errors.member_id)}>
+                {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+            </div>
+            <FieldError id={`${ids.member_id}-err`} text={errors.member_id} />
+          </>
+        )}
         <div className="field">
           <label htmlFor={ids.body}>Request</label>
           <textarea id={ids.body} className={`input ${d.request}`} value={body}

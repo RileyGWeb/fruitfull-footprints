@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useSyncExternalStore, type MouseEvent, type ReactNode } from 'react';
 import useSWR from 'swr';
 import { OfflineBanner } from '@/components/pwa/OfflineBanner';
+import { useMustInstall } from '@/components/settings/install';
 import { WarmNotes } from '@/components/pwa/WarmNotes';
 import { focusLandmark } from '@/components/ui/focus';
 import { Icon } from '@/components/ui/Icon';
@@ -14,6 +15,7 @@ import { clearOfflineData, endLockout, useGroup, useLock, type GateStatus } from
 import { setShellTitle } from '@/lib/title';
 import type { Snapshot } from '@/lib/types';
 import { Entrance } from './Entrance';
+import { InstallGate } from './InstallGate';
 import { MobileHeader } from './MobileHeader';
 import { routeTitle } from './nav';
 import { ScreenBoundary } from './ScreenBoundary';
@@ -23,13 +25,25 @@ import { TopNav } from './TopNav';
 import s from './Shell.module.css';
 
 /**
+ * What every screen sits inside. A phone or tablet in its browser gets the install screen and nothing else:
+ * the app is meant to be opened from the home screen, which is where signing in happens. Everywhere else
+ * (a computer, the installed app) it is the gate and the app chrome — SignInShell.
+ */
+export function AppShell({ children }: { children: ReactNode }) {
+  const mustInstall = useMustInstall();
+  if (mustInstall === null) return <Splash />; // not known until the browser has taken over from the server render
+  if (mustInstall) return <InstallGate />;
+  return <SignInShell>{children}</SignInShell>;
+}
+
+/**
  * The gate (splash → Entrance) and, once unlocked, the app chrome around every screen.
  *
  * Locked from elsewhere while open (a 401: the password changed, or Lock in another tab) the app stays
  * mounted — hidden and inert — under the Entrance, so an open dialog or a half-written study is still
  * there after the password. This device's own Lock puts everything away instead.
  */
-export function AppShell({ children }: { children: ReactNode }) {
+function SignInShell({ children }: { children: ReactNode }) {
   const { group, status, unlock, markLocked, refresh } = useGroup();
   const onLock = useLock();
   const lockedOut = useSyncExternalStore(subscribeGate, isLockedOut, () => false);

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useDialogs } from '@/components/dialogs';
 import { Avatar, Icon } from '@/components/ui';
+import { useAccess } from '@/lib/hooks';
 import { firstName } from '@/lib/members';
 import type { Member } from '@/lib/types';
 import s from './OurGroup.module.css';
@@ -10,6 +11,7 @@ import s from './OurGroup.module.css';
 /** Everyone's avatar and first name; each opens their profile. */
 export function OurGroup({ members }: { members: Member[] }) {
   const dialogs = useDialogs();
+  const { isLeader } = useAccess();
   return (
     <section className={s.section} aria-labelledby="home-group">
       <div className={s.head}>
@@ -29,11 +31,13 @@ export function OurGroup({ members }: { members: Member[] }) {
         </ul>
       ) : (
         <>
-          <p className={s.empty}>No one’s been added yet. Start with whoever comes on meeting nights.</p>
-          <button type="button" className={`btn btn-secondary hit ${s.add}`} onClick={() => void dialogs.addPerson()}>
-            <Icon name="plusSm" />
-            Add person
-          </button>
+          <p className={s.empty}>{isLeader ? 'No one’s been added yet. Start with whoever comes on meeting nights.' : 'No one’s been added yet. A leader will add everyone here.'}</p>
+          {isLeader && (
+            <button type="button" className={`btn btn-secondary hit ${s.add}`} onClick={() => void dialogs.addPerson()}>
+              <Icon name="plusSm" />
+              Add person
+            </button>
+          )}
         </>
       )}
     </section>

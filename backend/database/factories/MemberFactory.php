@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Member;
+use App\Services\Logins;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,5 +25,18 @@ class MemberFactory extends Factory
             'interests' => fake()->sentence(),
             'good_to_know' => fake()->sentence(),
         ];
+    }
+
+    public function leader(): static
+    {
+        return $this->state(['role' => 'leader']);
+    }
+
+    /**
+     * Someone who can sign in, with this password.
+     */
+    public function withLogin(string $password = 'a-fine-password'): static
+    {
+        return $this->afterCreating(fn (Member $member) => app(Logins::class)->setPassword($member, $password));
     }
 }

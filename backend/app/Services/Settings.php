@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 /**
  * Key/value group settings, read with a single query the first time anything asks for one.
@@ -17,7 +16,6 @@ class Settings
         'meeting_time' => '7pm',
         'meeting_place' => 'Rachel’s porch',
         'since_year' => 2023,
-        'password_version' => 1,
     ];
 
     /** The keys exposed to the client as `Settings`, in order. */
@@ -66,34 +64,5 @@ class Settings
     public function public(): array
     {
         return collect(self::PUBLIC_KEYS)->mapWithKeys(fn (string $key): array => [$key => $this->get($key)])->all();
-    }
-
-    public function hasPassword(): bool
-    {
-        return filled($this->get('password_hash'));
-    }
-
-    public function checkPassword(string $password): bool
-    {
-        return $this->hasPassword() && Hash::check($password, $this->get('password_hash'));
-    }
-
-    public function passwordVersion(): int
-    {
-        return (int) $this->get('password_version');
-    }
-
-    /**
-     * Set a new group password and bump the version, which locks every unlocked session.
-     *
-     * @return int The new password version.
-     */
-    public function changePassword(string $password): int
-    {
-        $version = $this->passwordVersion() + 1;
-
-        $this->set(['password_hash' => Hash::make($password), 'password_version' => $version]);
-
-        return $version;
     }
 }

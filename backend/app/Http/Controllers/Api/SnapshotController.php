@@ -12,20 +12,27 @@ use App\Models\Member;
 use App\Models\PrayerRequest;
 use App\Models\Study;
 use App\Services\Settings;
+use App\Services\Viewer;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Everything every screen needs, in one request; the client derives its views from this.
+ * Members get the published studies only; drafts are the leaders' to see.
  */
 class SnapshotController extends Controller
 {
-    public function __invoke(Settings $settings): JsonResponse
+    public function __invoke(Request $request, Settings $settings): JsonResponse
     {
+        $leader = Viewer::from($request)->isLeader();
+
         return response()->json([
             'settings' => $settings->public(),
             'members' => MemberResource::collection(Member::with('dates')->orderBy('created_at')->orderBy('id')->get()),
             'prayers' => PrayerResource::collection(PrayerRequest::with('updates')->latest()->latest('id')->get()),
-            'studies' => StudySummaryResource::collection(Study::orderByDesc('meeting_date')->orderByDesc('id')->get()),
+            'studies' => StudySummaryResource::collection(
+                Study::query()->when(! $leader, fn ($studies) => $studies->where('status', 'published'))->orderByDesc('meeting_date')->orderByDesc('id')->get(),
+            ),
             'activity' => ActivityResource::collection(Activity::latest()->latest('id')->limit(20)->get()),
             'server_time' => now(),
         ]);

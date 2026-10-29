@@ -1,7 +1,8 @@
 # Fruitfull Footprints
 
 A private home for one small group: the people in it, what we're praying about, and the Bible
-studies we walk through together. It's an installable PWA behind one shared group password.
+studies we walk through together. It's an installable PWA: on a phone it opens from the home screen, and
+everyone signs in with a password of their own, as a member or a leader.
 
 - **People** — everyone in the group, their spiritual gifts, a few things worth knowing, and dates
   to remember (birthdays, anniversaries, life events).
@@ -14,7 +15,7 @@ studies we walk through together. It's an installable PWA behind one shared grou
 
 | Part | What |
 |---|---|
-| `backend/` | Laravel 13 JSON API (PHP ≥ 8.3), session-cookie auth behind a shared password |
+| `backend/` | Laravel 13 JSON API (PHP ≥ 8.3), session-cookie auth with a password per person (members and leaders) |
 | `frontend/` | Next.js 16 App Router + React 19 + TypeScript, SWR, CSS Modules on the Organic design tokens, service worker for offline reading |
 | Database | Postgres 17 (`docker compose`) |
 
@@ -30,22 +31,29 @@ docker compose up -d                                   # Postgres on 127.0.0.1:5
 
 cd backend
 composer install
-cp .env.example .env && php artisan key:generate       # then set GROUP_PASSWORD in .env
-php artisan migrate --seed                             # settings + the group password
+cp .env.example .env && php artisan key:generate       # optionally set SUPER_ADMIN_PASSWORD_HASH (see below)
+php artisan migrate --seed                             # the default settings
 cd ..
 
 cd frontend && npm install && cd ..
 npm run dev                                            # Laravel :8110 + Next :3110 (logs in /tmp/ff_*.log)
 ```
 
-Open http://localhost:3110 and enter the group password. `npm run dev:down` stops both servers.
+Open http://localhost:3110 and sign in (with the demo data below, as Rachel: `footprints`). `npm run dev:down` stops both
+servers.
 
 **Demo data** (the group, prayers and studies from the design, shifted to sit around today):
 `npm run demo` (runs `php artisan migrate:fresh --seed --seeder=DemoSeeder` — wipes the dev DB).
 
-**Group password:** set `GROUP_PASSWORD` before the first seed, or any time with
-`php artisan ff:password`. Changing it (here or in Settings) locks every other device out until
-they enter the new one.
+**Logins.** Everyone has a password of their own, set by a leader (on a profile: Edit → Signing in), and it is all
+they type to sign in. The demo data has three: Rachel `footprints` and Mike `mike-leads` (leaders), Sarah
+`sarah-member` (a member). A **super admin** sits above the group: not a member, no profile, allowed to do
+everything, and how the first leaders get their passwords. Its bcrypt hash lives in `SUPER_ADMIN_PASSWORD_HASH`
+(`php artisan tinker --execute 'echo bcrypt("the password");'`, in single quotes in `.env`). Anyone can be given a
+login, or have it reset, from the server with `php artisan ff:login`.
+
+**Phones.** A phone or tablet in a browser tab is shown how to add the app to its home screen, and nothing else;
+the app opens from there and signs in there. Computers and the installed app go straight to sign-in.
 
 ## Tests
 
@@ -71,8 +79,10 @@ scripts/            dev-up.sh / dev-down.sh
 
 ## Decisions worth knowing
 
-- **One shared password, no accounts.** Nothing is attributed to a person; "Lock" logs this device
-  out. Sessions last a year.
+- **A password per person, two roles.** Leaders add and remove people, hand out passwords, write the
+  studies and change the group's settings; members read everything published, add prayer requests and
+  updates, and look after their own profile and the requests about them. Nothing else is attributed to
+  a person; "Lock" logs this device out. Sessions last a year, until a password changes.
 - **Read-only offline.** The service worker (production builds only) keeps every page opened
   online, every profile and published study page, and the last-fetched data, and the app saves the
   notes of upcoming and recent studies in the background, so studies and prayer lists are readable
@@ -81,7 +91,7 @@ scripts/            dev-up.sh / dev-down.sh
 - **Unsaved study writing is kept.** The editor asks before leaving with unsaved changes, keeps
   them on the device until they're saved, and if someone else saved the study meanwhile, asks
   whether to load their version or keep yours.
-- **Locked from elsewhere, nothing lost.** If the password changes while the app is open, the
+- **Locked from elsewhere, nothing lost.** If your password changes while the app is open, the
   password screen covers it, and whatever was half-typed is still there afterwards.
 - **"This week" includes tonight.** On meeting night Home shows tonight's study.
 - **Fills the design's gaps in its own style:** adding/editing/removing people, editing and

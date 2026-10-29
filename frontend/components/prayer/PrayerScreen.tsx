@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { ScreenState } from '@/components/ui/ScreenState';
 import { Seg } from '@/components/ui/Seg';
-import { useSnapshot } from '@/lib/hooks';
+import { useAccess, useSnapshot } from '@/lib/hooks';
 import { useDocumentTitle } from '@/lib/title';
 import { ActivePrayerCard } from './ActivePrayerCard';
 import { AnsweredPrayerCard } from './AnsweredPrayerCard';
@@ -20,6 +20,7 @@ export type PrayerTab = 'active' | 'answered';
 export function PrayerScreen({ tab }: { tab: PrayerTab }) {
   const { data, error, isLoading, mutate } = useSnapshot();
   const dialogs = useDialogs();
+  const { canManagePrayer } = useAccess();
   const router = useRouter();
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   useDocumentTitle(tab === 'answered' ? 'Answered prayers' : 'Prayer');
@@ -71,6 +72,7 @@ export function PrayerScreen({ tab }: { tab: PrayerTab }) {
                   onUpdatingChange={open => setUpdatingId(open ? v.prayer.id : null)}
                   onAnswer={() => void dialogs.answerPrayer(v.prayer)}
                   onEdit={() => void dialogs.editPrayer(v.prayer)}
+                  canManage={canManagePrayer(v.prayer)}
                 />
               ))}
             </div>
@@ -83,7 +85,7 @@ export function PrayerScreen({ tab }: { tab: PrayerTab }) {
               <p className={s.intro}>Kept here on purpose. It’s good to look back and remember.</p>
               <div className={s.grid}>
                 {answered.map(v => (
-                  <AnsweredPrayerCard key={v.prayer.id} view={v} onEdit={() => void dialogs.editPrayer(v.prayer)} />
+                  <AnsweredPrayerCard key={v.prayer.id} view={v} onEdit={() => void dialogs.editPrayer(v.prayer)} canManage={canManagePrayer(v.prayer)} />
                 ))}
               </div>
             </>

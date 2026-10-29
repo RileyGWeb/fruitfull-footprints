@@ -34,7 +34,7 @@ GLOBAL NOTES FOR SCREENS
 
 lib/types.ts — exactly SPEC §2.3:
 - Tone = 'sage'|'accent'|'sand'; DateKind = 'birthday'|'anniversary'|'event'; PrayerStatus = 'active'|'answered'; StudyStatus = 'draft'|'published'; SectionType = 'text'|'scripture'|'questions'|'reflect'|'prayer'.
-- Settings, GroupInfo, MemberDate, Member, PrayerUpdate, Prayer, StudySummary, Section, Study, Activity, Snapshot. Snapshot.members are in join order (created_at, then id), prayers newest first, studies by meeting_date desc, activity the newest 20.
+- Role, Viewer {role: Role|'super'; member_id: number|null; name: string|null}, Settings, GroupInfo (★ with `viewer: Viewer|null`), MemberDate, Member (★ with `role` and, for leaders only, `has_login?`), PrayerUpdate, Prayer, StudySummary, Section, Study, Activity, Snapshot. Snapshot.members are in join order (created_at, then id), prayers newest first, studies by meeting_date desc, activity the newest 20.
 - Inputs:
   - MemberInput {name; tone?; gifts?; line?; family?; interests?; good_to_know?}
   - DateInput {kind; label?: string|null; date: string; recurring} — `date` is 'YYYY-MM-DD', or ★ '--MM-DD' to move a recurring date kept without a year (its year stays null; refused with recurring:false).
@@ -42,7 +42,7 @@ lib/types.ts — exactly SPEC §2.3:
   - PrayerPatch {member_id?; body?; answer?: string|null}
   - SectionInput = Omit<Section,'id'> & {id?}
   - StudyInput {series?; ref?; title?; passage?; meeting_date; location?; description?; sections: SectionInput[]; status; ★ expected_updated_at?} — `expected_updated_at` (PUT only) is the `updated_at` the client loaded; see lib/endpoints.
-  - PasswordInput {current_password; password; password_confirmation}
+  - MemberInput also takes ★ `role?` and `password?` (leaders only; a blank password isn't sent, which keeps the current one).
 
 lib/api.ts:
 - OFFLINE_MESSAGE = 'You’re offline — try again when you’re connected.'
@@ -64,9 +64,9 @@ lib/api.ts:
 
 lib/endpoints.ts:
 - Keys: GROUP_KEY = '/api/group'; SNAPSHOT_KEY = '/api/snapshot'; studyKey(id: number|string).
-- Gate: getGroup(): Promise<GroupInfo>; unlock(password): Promise<{unlocked:true}>; lock(): Promise<void>.
-- getSnapshot(): Promise<Snapshot>; updateSettings(patch: Partial<Settings>): Promise<Settings>; changePassword(input: PasswordInput): Promise<void>.
-- Members: createMember(input: MemberInput): Promise<Member>; updateMember(id: number, patch: Partial<MemberInput>): Promise<Member>; deleteMember(id).
+- Gate: getGroup(): Promise<GroupInfo>; unlock(password): Promise<{unlocked:true; viewer: Viewer}>; lock(): Promise<void>.
+- getSnapshot(): Promise<Snapshot>; updateSettings(patch: Partial<Settings>): Promise<Settings> (leaders).
+- Members: createMember(input: MemberInput): Promise<Member>; updateMember(id: number, patch: Partial<MemberInput>): Promise<Member>; deleteMember(id); ★ removeLogin(id): Promise<Member> (take someone's password away).
 - Dates: createDate(memberId, input: DateInput): Promise<MemberDate>; updateDate(id, patch: Partial<DateInput>): Promise<MemberDate>; deleteDate(id).
 - Prayers:
   - createPrayer(input: PrayerInput): Promise<Prayer>; updatePrayer(id, patch: PrayerPatch): Promise<Prayer>; deletePrayer(id).
@@ -125,13 +125,15 @@ lib/studies.ts:
 - ★ notesToWarm(studies, now?, past = OFFLINE_PAST_STUDIES (12)): T[] — the notes most likely to be read next, saved for offline reading (components/pwa/WarmNotes): every published study meeting today or later (soonest first, up next included), then the `past` most recent past published ones. No drafts.
 
 lib/hooks.ts:
-- DEFAULT_GROUP: GroupInfo.
+- DEFAULT_GROUP: GroupInfo (★ `viewer: null`).
+- ★ useViewer(): Viewer|null — who is signed in on this device (from the gate's /api/group; null while locked or unknown). useAccess(): Access — `accessFor(viewer)` from lib/access.ts: {role, memberId, isLeader, isSuper, isMe(id), canEditPerson(id), canManagePrayer(prayer)}. Only for hiding controls the server would refuse (backend ACCESS).
 - useSnapshot(): SWRResponse<Snapshot, ApiError> (key SNAPSHOT_KEY). useStudy(id: number|string|null|undefined): SWRResponse<Study, ApiError>. useOnline(): boolean.
 - ★ type GateStatus = 'loading'|'locked'|'unlocked'|'unreachable'. 'unreachable' = /api/group failed (offline or 5xx) with nothing cached, so the shell shows “We can’t reach the group just now” with Try again instead of asking for the password. An error after a successful load keeps the last known state.
 - clearDataCache(): Promise — drops every SWR key except the gate. clearOfflineData(): void — tells the service worker to drop its API cache ({type:'CLEAR_DATA'}).
 - useGroup(): {group: GroupInfo (DEFAULT_GROUP until loaded or if unreachable), status: GateStatus, error, unlock(password): Promise<void>, lock(): Promise<void>, ★ markLocked(), refresh()}.
   - ★ lock() locks locally first and never throws: sets a pending-lock flag (localStorage, followed across tabs), dispatches LOCK_EVENT (open dialogs close), clears the editor's kept copies (`ff:editor-draft:*`), the SW API copy and the SWR cache, shuts the gate, then sends POST /api/lock — now, or on the next 'online' event. The Entrance stays up across reloads until the password is entered.
   - ★ markLocked(): shut the gate at once after a 401, then re-check with the server.
+  - ★ unlock(password) also notes who signed in (lib/gate.ts noteSignIn, localStorage 'ff:viewer'); when it's somebody other than the last person on this device (a lock-out, then another person's password), that person's kept editor copies, the SW API copy and the SWR cache are cleared first, so nothing of theirs carries over.
   - unlock(password) waits for a Lock still in flight, then unlocks, clears the pending flag and ends a lock-out (data revalidates).
 - ★ useLock(): () => Promise<void> — the Lock button: lock(), then go Home (leaveTo, replace). Use it instead of hand-rolling lock().then(router.replace) + toast.
 - ★ flushPendingLock(): Promise<boolean> — sends an offline Lock; true once the server has it. endLockout(): void — after a lock-out ends, show the app and revalidate its data.
@@ -156,7 +158,8 @@ lib/actions.ts — useActions(): Actions (stable). ★ createActions(cache, muta
 - Studies:
   - saveStudy(input: StudyInput, id?: number): Promise<Study> — POST without id, PUT with id. Toast by transition: 'Draft saved' / 'Published — everyone can read it now' / 'Changes saved' / published→draft 'Moved back to drafts'. Stores the study key. ★ A 409 (sent with `expected_updated_at`, saved somewhere else since) is rethrown untoasted, like a 422 with field errors: the caller shows its conflict dialog from `e.data.study`.
   - unpublishStudy(study: Study): Promise<Study> 'Moved back to drafts'; deleteStudy(id): Promise<void> 'Study deleted'.
-- Settings: updateSettings(patch: Partial<Settings>): Promise<Settings> 'Settings saved' (also refreshes the gate); changePassword(input: PasswordInput): Promise<void> 'Password changed'.
+- Settings: updateSettings(patch: Partial<Settings>): Promise<Settings> 'Settings saved' (also refreshes the gate). ★ No password to change: removeLogin(member) '{First} can’t sign in anymore' is under People.
+- ★ A 403 is toasted with the server's own words (“You don’t have access to do that.”); the screens don't offer what would get one.
 - type Actions.
 - Example: `try { await actions.addPrayerUpdate(id, body) } catch (e) { const fe = fieldErrors(e); if (fe) setError(fe.body ?? Object.values(fe)[0]) }`
 
@@ -231,10 +234,11 @@ components/dialogs ('@/components/dialogs'):
 - Also exported from their own files: PrayerDialog, AnswerDialog, EditPrayerDialog, DateDialog, PersonDialog.
 
 components/shell (import from the files):
-- AppShell({children}) — the gate: Splash while loading → ★ the 'unreachable' SystemCard → Entrance → TopNav (in a <header>) + MobileHeader + OfflineBanner + <main id="main"> + TabBar, with a “Skip to content” link. Sets document.title (ShellTitle).
-  - ★ On ff:locked (a 401) it clears the SW API copy, shuts the gate at once (markLocked) and keeps the app mounted but inert and aria-hidden under an overlay Entrance that says why (“This device was locked — the group password may have changed. Anything you were in the middle of is still here.”). SWR is paused meanwhile. After the password, data revalidates and focus returns to where it was.
+- ★ AppShell({children}) — first, on a phone or tablet that isn't running as the installed app (`useMustInstall()`, components/settings/install.ts; null = unknown on the server render, which is the Splash) the ★ InstallGate and nothing else (SPEC §3.4). Otherwise the sign-in shell: Splash while loading → ★ the 'unreachable' SystemCard → Entrance → TopNav (in a <header>) + MobileHeader + OfflineBanner + <main id="main"> + TabBar, with a “Skip to content” link. Sets document.title (ShellTitle).
+  - ★ On ff:locked (a 401) it clears the SW API copy, shuts the gate at once (markLocked) and keeps the app mounted but inert and aria-hidden under an overlay Entrance that says why (“This device was locked — your password may have changed. Anything you were in the middle of is still here.”). SWR is paused meanwhile. After the password, data revalidates and focus returns to where it was.
   - ★ The header Lock calls useLock(): everything is put away locally first (see lib/hooks lock()).
-- Splash() (a <main> with hidden 'Loading…'); Entrance({group: GroupInfo, onUnlock(password): Promise<void>, ★ lockedOut?}); TopNav({groupName, onLock}); MobileHeader({groupName, onLock}); TabBar(). Header gear, lock and brand row are 44px targets.
+- ★ InstallGate() — the install screen in the Entrance's card: Install button / iOS steps / browser-menu steps / “open this in Safari or Chrome” inside another app's browser / “It's on your phone now”. `components/settings/install.ts` also exports isMobileDevice(), isMobileBrowser(), isInAppBrowser().
+- Splash() (a <main> with hidden 'Loading…'); Entrance({group: GroupInfo, onUnlock(password): Promise<void>, ★ lockedOut?}) — “Your password”, and “No password yet? A leader can set one up for you.”; TopNav({groupName, onLock}); MobileHeader({groupName, onLock}); TabBar(). Header gear, lock and brand row are 44px targets.
 - ★ ScreenBoundary — catchError boundary inside <main>: a screen that throws shows “Something went wrong here” with Try again / Go to Home, and the chrome stays.
 - ★ SystemCard({kicker, title, body, children}) — a whole-page notice in the /offline page's style (unreachable, app/error.tsx, app/global-error.tsx); action classes SystemCard.styles.primary / .secondary.
 - nav.ts: NAV: {key, label, href, icon}[]; activeNav(path): NavKey|null (/people/3 → people, /studies/5/edit → studies, /settings → null); type NavKey; ★ routeTitle(path, snapshot?) (see lib/title.ts).

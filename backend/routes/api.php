@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\Route;
 
 /*
 | Loaded under /api with the `web` middleware group (see bootstrap/app.php): cookie session +
-| CSRF. Everything except the three group routes needs an unlocked session.
+| CSRF. Everything except the three group routes needs someone signed in (`group.unlocked`).
+| Routes in the `leader` group are for leaders only; the rest are open to every signed-in
+| person, and the policies in app/Policies narrow them (your own profile, requests about you,
+| published studies).
 */
 
 Route::patterns(array_fill_keys(['member', 'date', 'prayer', 'update', 'study'], '[0-9]{1,18}'));
@@ -24,12 +27,19 @@ Route::post('lock', [GroupController::class, 'lock']);
 Route::middleware('group.unlocked')->group(function (): void {
     Route::get('snapshot', SnapshotController::class);
 
-    Route::patch('settings', [SettingsController::class, 'update']);
-    Route::put('settings/password', [SettingsController::class, 'password']);
+    Route::middleware('leader')->group(function (): void {
+        Route::patch('settings', [SettingsController::class, 'update']);
 
-    Route::post('members', [MemberController::class, 'store']);
+        Route::post('members', [MemberController::class, 'store']);
+        Route::delete('members/{member}', [MemberController::class, 'destroy']);
+        Route::delete('members/{member}/login', [MemberController::class, 'destroyLogin']);
+
+        Route::post('studies', [StudyController::class, 'store']);
+        Route::put('studies/{study}', [StudyController::class, 'update']);
+        Route::delete('studies/{study}', [StudyController::class, 'destroy']);
+    });
+
     Route::patch('members/{member}', [MemberController::class, 'update']);
-    Route::delete('members/{member}', [MemberController::class, 'destroy']);
 
     Route::post('members/{member}/dates', [MemberDateController::class, 'store']);
     Route::patch('dates/{date}', [MemberDateController::class, 'update']);
@@ -45,7 +55,4 @@ Route::middleware('group.unlocked')->group(function (): void {
     Route::delete('prayer-updates/{update}', [PrayerUpdateController::class, 'destroy']);
 
     Route::get('studies/{study}', [StudyController::class, 'show']);
-    Route::post('studies', [StudyController::class, 'store']);
-    Route::put('studies/{study}', [StudyController::class, 'update']);
-    Route::delete('studies/{study}', [StudyController::class, 'destroy']);
 });

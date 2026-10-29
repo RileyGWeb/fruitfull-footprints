@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Member;
 use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
@@ -23,7 +24,7 @@ class CsrfTest extends TestCase
         // PreventRequestForgery stands aside while unit tests run; make it enforce.
         $this->app['env'] = 'local';
 
-        $this->setGroupPassword('footprints');
+        Member::factory()->withLogin('footprints')->create();
     }
 
     public function test_a_write_without_a_token_is_rejected_with_419(): void

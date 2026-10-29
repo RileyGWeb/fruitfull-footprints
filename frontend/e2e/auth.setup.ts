@@ -1,9 +1,10 @@
-// The `setup` project: unlock once through the Entrance and save the session for every other test.
-// Also opens each route once, so Next dev has compiled them before the parallel tests start.
+// The `setup` project: sign in once through the Entrance as a leader (every test's session) and once as a
+// member (for the tests of what members can't do), and save both. The leader also opens each route once,
+// so Next dev has compiled them before the parallel tests start.
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test as setup } from '@playwright/test';
-import { AUTH_FILE, PASSWORD } from './env';
+import { AUTH_FILE, MEMBER_AUTH_FILE, MEMBER_PASSWORD, PASSWORD } from './env';
 
 const ROUTES: [string, string | RegExp][] = [
   ['/people', 'Our group'],
@@ -19,11 +20,20 @@ const ROUTES: [string, string | RegExp][] = [
   ['/qa-no-such-page', 'That page isn’t here'],
 ];
 
-setup('unlock the group and warm up the routes', async ({ page }) => {
+setup('sign in as a member', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Your password').fill(MEMBER_PASSWORD);
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: /friends\.$/ })).toBeVisible({ timeout: 60_000 });
+  mkdirSync(path.dirname(MEMBER_AUTH_FILE), { recursive: true });
+  await page.context().storageState({ path: MEMBER_AUTH_FILE });
+});
+
+setup('sign in as a leader and warm up the routes', async ({ page }) => {
   setup.setTimeout(240_000);
   await page.goto('/');
-  await page.getByLabel('Group password').fill(PASSWORD);
-  await page.getByRole('button', { name: 'Open' }).click();
+  await page.getByLabel('Your password').fill(PASSWORD);
+  await page.getByRole('button', { name: 'Open', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: /friends\.$/ })).toBeVisible();
   mkdirSync(path.dirname(AUTH_FILE), { recursive: true });
   await page.context().storageState({ path: AUTH_FILE });

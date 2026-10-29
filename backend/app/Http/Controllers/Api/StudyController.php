@@ -7,14 +7,22 @@ use App\Http\Requests\SaveStudyRequest;
 use App\Http\Resources\StudyResource;
 use App\Models\Study;
 use App\Services\ActivityLog;
+use App\Services\Viewer;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class StudyController extends Controller
 {
-    public function show(Study $study): StudyResource
+    /**
+     * Members can't see drafts, and don't learn that one exists: it's a 404 for them.
+     * Writing is leaders' work (the `leader` route middleware).
+     */
+    public function show(Request $request, Study $study): StudyResource
     {
+        abort_unless(Viewer::from($request)->can('view', $study), 404);
+
         return new StudyResource($study);
     }
 

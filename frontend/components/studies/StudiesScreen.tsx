@@ -5,7 +5,7 @@ import { Suspense, useMemo } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { ScreenState } from '@/components/ui/ScreenState';
 import { toISODay, today } from '@/lib/dates';
-import { useSnapshot } from '@/lib/hooks';
+import { useAccess, useSnapshot } from '@/lib/hooks';
 import { buildPath, draftStudies, upNext } from '@/lib/studies';
 import { useDocumentTitle } from '@/lib/title';
 import { DraftCard } from './DraftCard';
@@ -18,6 +18,7 @@ import s from './Studies.module.css';
 /** Studies: up next, drafts, the path so far, and every previous study. */
 export function StudiesScreen() {
   const { data, error, isLoading, mutate } = useSnapshot();
+  const { isLeader } = useAccess();
   const now = useMemo(() => today(), []);
   const studies = data?.studies;
   useDocumentTitle('Studies');
@@ -40,15 +41,17 @@ export function StudiesScreen() {
           <h1 className={s.h1}>Studies</h1>
           <p className={s.subtitle}>Notes go up a few days early so we can read ahead.</p>
         </div>
-        <Link href="/studies/new" className={`btn btn-secondary ${s.newStudy}`}>
-          <Icon name="plusSm" /> New study
-        </Link>
+        {isLeader && (
+          <Link href="/studies/new" className={`btn btn-secondary ${s.newStudy}`}>
+            <Icon name="plusSm" /> New study
+          </Link>
+        )}
       </div>
 
       {view && studies ? (
         <>
           <div className={s.cards}>
-            <UpNextCard study={view.next} now={now} />
+            <UpNextCard study={view.next} now={now} canWrite={isLeader} />
             {view.later.map(x => <PostedCard key={x.id} study={x} now={now} />)}
             {view.drafts.map(d => <DraftCard key={d.id} study={d} />)}
           </div>

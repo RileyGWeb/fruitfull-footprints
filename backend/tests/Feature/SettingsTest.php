@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Services\Settings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -80,57 +79,36 @@ class SettingsTest extends TestCase
 
     public function test_unknown_keys_are_ignored(): void
     {
-        $this->unlocked()->patchJson('/api/settings', ['password_version' => 99, 'password_hash' => 'x'])->assertOk();
+        $this->unlocked()->patchJson('/api/settings', ['password_version' => 99, 'password_hash' => 'x', 'role' => 'leader'])->assertOk();
 
-        $this->assertSame(1, app(Settings::class)->passwordVersion());
-        $this->assertFalse(app(Settings::class)->hasPassword());
+        $this->assertDatabaseMissing('settings', ['key' => 'password_version']);
+        $this->assertDatabaseMissing('settings', ['key' => 'password_hash']);
+        $this->assertDatabaseMissing('settings', ['key' => 'role']);
     }
 
-    public function test_the_password_can_be_changed_with_the_current_one(): void
+    public function test_leaders_can_change_the_settings(): void
     {
-        $version = $this->setGroupPassword('footprints');
+        $this->asLeader()->patchJson('/api/settings', ['group_name' => 'Porch Group'])
+            ->assertOk()
+            ->assertJsonPath('group_name', 'Porch Group');
+    }
 
+    public function test_members_cannot_change_the_settings(): void
+    {
+        $this->asMember()->patchJson('/api/settings', ['group_name' => 'Hijacked'])
+            ->assertForbidden()
+            ->assertExactJson(['message' => 'You don’t have access to do that.']);
+
+        $this->assertSame('Fruitfull Footprints', app(Settings::class)->get('group_name'));
+    }
+
+    public function test_there_is_no_shared_group_password_to_change_any_more(): void
+    {
         $this->unlocked()->putJson('/api/settings/password', [
             'current_password' => 'footprints',
             'password' => 'mustard-seed',
             'password_confirmation' => 'mustard-seed',
-        ])->assertNoContent()->assertSessionHas('ff_pw_version', $version + 1);
-
-        $settings = app(Settings::class);
-        $this->assertSame($version + 1, $settings->passwordVersion());
-        $this->assertTrue(Hash::check('mustard-seed', json_decode(DB::table('settings')->where('key', 'password_hash')->value('value'))));
-        $this->assertTrue($settings->checkPassword('mustard-seed'));
-        $this->assertFalse($settings->checkPassword('footprints'));
-    }
-
-    /**
-     * @return array<string, array{0: array<string, string>, 1: string}>
-     */
-    public static function invalidPasswordChanges(): array
-    {
-        return [
-            'wrong current password' => [['current_password' => 'nope', 'password' => 'mustard-seed', 'password_confirmation' => 'mustard-seed'], 'current_password'],
-            'missing current password' => [['password' => 'mustard-seed', 'password_confirmation' => 'mustard-seed'], 'current_password'],
-            'current password not text' => [['current_password' => ['footprints'], 'password' => 'mustard-seed', 'password_confirmation' => 'mustard-seed'], 'current_password'],
-            'too short' => [['current_password' => 'footprints', 'password' => 'abc', 'password_confirmation' => 'abc'], 'password'],
-            'not confirmed' => [['current_password' => 'footprints', 'password' => 'mustard-seed', 'password_confirmation' => 'mustard-seeds'], 'password'],
-        ];
-    }
-
-    /**
-     * @param  array<string, string>  $payload
-     */
-    #[DataProvider('invalidPasswordChanges')]
-    public function test_password_changes_are_validated(array $payload, string $field): void
-    {
-        $version = $this->setGroupPassword('footprints');
-
-        $this->unlocked()->putJson('/api/settings/password', $payload)
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors($field);
-
-        $this->assertSame($version, app(Settings::class)->passwordVersion());
-        $this->assertTrue(app(Settings::class)->checkPassword('footprints'));
+        ])->assertNotFound();
     }
 
     public function test_settings_are_read_with_one_query_per_request(): void

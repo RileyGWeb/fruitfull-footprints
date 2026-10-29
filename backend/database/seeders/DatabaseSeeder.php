@@ -4,11 +4,11 @@ namespace Database\Seeders;
 
 use App\Services\Settings;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 /**
- * What a fresh install needs: default settings, plus the group password from GROUP_PASSWORD
- * when none is set yet. Safe to run again; it never overwrites anything.
+ * What a fresh install needs: the default settings. Safe to run again (the deploy does, every
+ * time); it never overwrites anything. Logins are not seeded: the super admin comes from the
+ * environment (config/group.php) and gives everyone else theirs.
  */
 class DatabaseSeeder extends Seeder
 {
@@ -18,12 +18,6 @@ class DatabaseSeeder extends Seeder
 
         if ($missing !== []) {
             $settings->set($missing);
-        }
-
-        $password = config('group.password');
-
-        if (! $settings->hasPassword() && filled($password)) {
-            $settings->set(['password_hash' => Hash::make($password)]);
         }
     }
 }

@@ -22,8 +22,6 @@ class ValidationMessagesTest extends TestCase
 
     private const STUDY = ['meeting_date' => '2026-10-21', 'status' => 'draft', 'sections' => []];
 
-    private const PASSWORD = ['current_password' => 'footprints', 'password' => 'mustard-seed', 'password_confirmation' => 'mustard-seed'];
-
     /**
      * @return array<string, array{0: string, 1: string, 2: array<string, mixed>, 3: string, 4: string}>
      */
@@ -44,6 +42,17 @@ class ValidationMessagesTest extends TestCase
             'member: long family' => ['POST', '/api/members', ['name' => 'Ann Lee', 'family' => $long(1001)], 'family', 'Keep it under 1,000 characters.'],
             'member: long interests' => ['POST', '/api/members', ['name' => 'Ann Lee', 'interests' => $long(1001)], 'interests', 'Keep it under 1,000 characters.'],
             'member: long good to know' => ['POST', '/api/members', ['name' => 'Ann Lee', 'good_to_know' => $long(1001)], 'good_to_know', 'Keep it under 1,000 characters.'],
+            'member: unknown role' => ['POST', '/api/members', ['name' => 'Ann Lee', 'role' => 'boss'], 'role', 'Pick member or leader.'],
+            'member: blank role' => ['POST', '/api/members', ['name' => 'Ann Lee', 'role' => ''], 'role', 'Pick member or leader.'],
+            'member: password too short' => ['POST', '/api/members', ['name' => 'Ann Lee', 'password' => 'short'], 'password', 'Use at least 8 characters.'],
+            'member: password too long' => ['POST', '/api/members', ['name' => 'Ann Lee', 'password' => $long(65)], 'password', 'Keep it under 64 characters.'],
+            'member: password not text' => ['POST', '/api/members', ['name' => 'Ann Lee', 'password' => ['cardamom-buns']], 'password', 'This needs to be text.'],
+            'member: password too easy' => ['POST', '/api/members', ['name' => 'Ann Lee', 'password' => 'Password1'], 'password', 'That one’s too easy to guess. Try something longer or less common.'],
+            'member: password is one letter repeated' => ['POST', '/api/members', ['name' => 'Ann Lee', 'password' => $long(12)], 'password', 'That one’s too easy to guess. Try something longer or less common.'],
+            'member: password already someone’s' => ['POST', '/api/members', ['name' => 'Ann Lee', 'password' => 'cardamom-buns'], 'password', 'Someone else already uses that password. Try another.'],
+            'member: password is the super admin’s' => ['POST', '/api/members', ['name' => 'Ann Lee', 'password' => self::SUPER_PASSWORD], 'password', 'Someone else already uses that password. Try another.'],
+            'member edit: unknown role' => ['PATCH', '/api/members/{member}', ['role' => 'boss'], 'role', 'Pick member or leader.'],
+            'member edit: password too short' => ['PATCH', '/api/members/{member}', ['password' => 'short'], 'password', 'Use at least 8 characters.'],
             'member edit: blank name' => ['PATCH', '/api/members/{member}', ['name' => ''], 'name', 'Add their name.'],
             'member edit: no tone' => ['PATCH', '/api/members/{member}', ['tone' => null], 'tone', 'Pick one of the three colors.'],
 
@@ -109,11 +118,6 @@ class ValidationMessagesTest extends TestCase
             'settings: year not a number' => ['PATCH', '/api/settings', ['since_year' => 'long ago'], 'since_year', 'Add the year you started, like 2023.'],
             'settings: year out of range' => ['PATCH', '/api/settings', ['since_year' => 1066], 'since_year', 'Pick a year between 1900 and 2100.'],
 
-            'password: no current password' => ['PUT', '/api/settings/password', [...self::PASSWORD, 'current_password' => null], 'current_password', 'Type the password you use now.'],
-            'password: current password not text' => ['PUT', '/api/settings/password', [...self::PASSWORD, 'current_password' => ['footprints']], 'current_password', 'Type the password you use now.'],
-            'password: wrong current password' => ['PUT', '/api/settings/password', [...self::PASSWORD, 'current_password' => 'nope'], 'current_password', 'That isn’t the current password.'],
-            'password: no new password' => ['PUT', '/api/settings/password', [...self::PASSWORD, 'password' => null], 'password', 'Choose a new password.'],
-            'password: new password not text' => ['PUT', '/api/settings/password', [...self::PASSWORD, 'password' => ['mustard-seed']], 'password', 'This needs to be text.'],
         ];
     }
 
@@ -142,9 +146,6 @@ class ValidationMessagesTest extends TestCase
         if ($field === 'meeting_date' && $message !== 'Pick a date between 1900 and 2200.') {
             $this->assertDoesNotMatchRegularExpression('/between/i', $message);
         }
-        if ($uri === '/api/settings/password') {
-            $this->assertDoesNotMatchRegularExpression('/least|min|confirm/i', $message);
-        }
     }
 
     /**
@@ -163,22 +164,19 @@ class ValidationMessagesTest extends TestCase
             'study: publishing without a ref' => ['/api/studies', [...self::STUDY, 'status' => 'published', 'title' => 'Hope'], 'ref', 'The ref field is required when status is published.', '/required/i'],
             'study: publishing without a title' => ['/api/studies', [...self::STUDY, 'status' => 'published', 'ref' => 'Romans 8'], 'title', 'The title field is required when status is published.', '/required/i'],
             'study: meeting date out of range' => ['/api/studies', [...self::STUDY, 'meeting_date' => '1899-12-31'], 'meeting_date', 'Pick a date between 1900 and 2200.', '/between/i'],
-            'password: too short' => ['/api/settings/password', [...self::PASSWORD, 'password' => 'abc', 'password_confirmation' => 'abc'], 'password', 'The password field must be at least 6 characters.', '/least|min/i'],
-            'password: not confirmed' => ['/api/settings/password', [...self::PASSWORD, 'password_confirmation' => 'mustard-seeds'], 'password', 'The password field confirmation does not match.', '/confirm/i'],
         ];
     }
 
     /**
-     * The study editor (frontend/components/editor/draft.ts `friendly`) and the Settings
-     * password form (frontend/components/settings/form.ts `passwordServerErrors`) recognise
-     * these by their wording and show their own copy, so they stay exactly as Laravel words them.
+     * The study editor (frontend/components/editor/draft.ts `friendly`) recognises these by their
+     * wording and shows its own copy, so they stay exactly as Laravel words them.
      *
      * @param  array<string, mixed>  $payload
      */
     #[DataProvider('messagesTheFrontendReads')]
     public function test_messages_the_frontend_reads_keep_their_wording(string $uri, array $payload, string $field, string $message, string $frontendPattern): void
     {
-        $this->send($uri === '/api/studies' ? 'POST' : 'PUT', $uri, $payload)
+        $this->send('POST', $uri, $payload)
             ->assertUnprocessable()
             ->assertJson(['errors' => [$field => [$message]]]);
 
@@ -190,7 +188,7 @@ class ValidationMessagesTest extends TestCase
      */
     private function send(string $method, string $uri, array $payload): TestResponse
     {
-        $this->setGroupPassword('footprints');
+        Member::factory()->withLogin('cardamom-buns')->create();
 
         $ids = [
             '{member}' => Member::factory()->create()->id,

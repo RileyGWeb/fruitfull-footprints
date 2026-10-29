@@ -6,7 +6,7 @@ import { BackButton } from '@/components/ui/BackButton';
 import { Icon } from '@/components/ui/Icon';
 import { NotFound, ScreenState } from '@/components/ui/ScreenState';
 import { longDate, parseDay, today } from '@/lib/dates';
-import { useSnapshot, useStudy } from '@/lib/hooks';
+import { useAccess, useSnapshot, useStudy } from '@/lib/hooks';
 import { paragraphs, studyKicker } from '@/lib/studies';
 import { useDocumentTitle } from '@/lib/title';
 import type { StudySummary } from '@/lib/types';
@@ -119,13 +119,14 @@ export function StudyReader({ id }: { id: string }) {
   );
 }
 
-/** The article column with “← Studies” and (for a real study) “Edit”. */
+/** The article column with “← Studies” and (for a real study, to leaders) “Edit”. */
 function Frame({ id, children }: { id?: number; children: ReactNode }) {
+  const { isLeader } = useAccess();
   return (
     <article className={r.article}>
       <div className={r.bar}>
         <BackButton href="/studies" label="Studies" className={`hit ${r.back}`} />
-        {id != null && (
+        {id != null && isLeader && (
           <Link href={`/studies/${id}/edit`} className={`btn btn-secondary hit ${r.edit}`} aria-label="Edit study">
             <Icon name="editSm" /> Edit
           </Link>

@@ -7,7 +7,10 @@
 //   locked here until the password is entered again; the POST is sent once it's back online.
 //   Kept in localStorage so a reload (or another tab) doesn't reopen the app.
 
+import type { Viewer } from './types.ts';
+
 const PENDING_KEY = 'ff:pending-lock';
+const VIEWER_KEY = 'ff:viewer';
 
 let lockedOut = false;
 let pendingLock = readPending();
@@ -42,6 +45,21 @@ export function setPendingLock(value: boolean): void {
     // Private mode / blocked storage: the flag still holds for this page.
   }
   emit();
+}
+
+/**
+ * Notes who just signed in on this device. True when it's somebody other than the last person to,
+ * so what that person left behind (their kept drafts, the data they were shown) shouldn't carry over.
+ */
+export function noteSignIn(viewer: Viewer): boolean {
+  const who = viewer.role === 'super' ? 'super' : String(viewer.member_id);
+  try {
+    const before = window.localStorage.getItem(VIEWER_KEY);
+    window.localStorage.setItem(VIEWER_KEY, who);
+    return before !== null && before !== who;
+  } catch {
+    return false;
+  }
 }
 
 let watchingStorage = false;

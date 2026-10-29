@@ -135,6 +135,12 @@
   margin-top: 14px;
 }
 
+.help {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--color-neutral-700);
+}
+
 .motto {
   margin: 26px 0 0;
   font-size: 14px;

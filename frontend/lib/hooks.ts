@@ -1,12 +1,13 @@
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import useSWR, { mutate as globalMutate } from 'swr';
 import { clearAllLocal } from '../components/editor/localDraft.ts';
+import { accessFor, type Access } from './access.ts';
 import { ApiError, LOCK_EVENT, fetcher } from './api.ts';
 import * as ep from './endpoints.ts';
-import { hasPendingLock, isLockedOut, setLockedOut, setPendingLock, subscribeGate } from './gate.ts';
+import { hasPendingLock, isLockedOut, noteSignIn, setLockedOut, setPendingLock, subscribeGate } from './gate.ts';
 import { leaveTo } from './historyGuard.ts';
-import type { GroupInfo, Snapshot, Study } from './types.ts';
+import type { GroupInfo, Snapshot, Study, Viewer } from './types.ts';
 
 /** Gate copy used until /api/group answers. */
 export const DEFAULT_GROUP: GroupInfo = {
@@ -15,7 +16,20 @@ export const DEFAULT_GROUP: GroupInfo = {
   meeting_day: 'Wednesday',
   since_year: 2023,
   unlocked: false,
+  viewer: null,
 };
+
+/** Who is signed in on this device (null until the gate has answered, or while locked). */
+export function useViewer(): Viewer | null {
+  const { data } = useSWR<GroupInfo, ApiError>(ep.GROUP_KEY, fetcher);
+  return data?.unlocked ? data.viewer : null;
+}
+
+/** What the signed-in person may do (lib/access.ts). Nothing until the gate has answered. */
+export function useAccess(): Access {
+  const viewer = useViewer();
+  return useMemo(() => accessFor(viewer), [viewer]);
+}
 
 /** The one snapshot every screen derives from. */
 export function useSnapshot() {
@@ -42,7 +56,8 @@ export function useOnline(): boolean {
 }
 
 /**
- * - `locked`: the Entrance (the server said so, a 401, or a Lock the server hasn't heard yet).
+ * - `locked`: the Entrance (the server said so, a 401, or a Lock the server hasn't heard yet). An answer that
+ *   says unlocked without saying who (a copy saved before people had logins of their own) counts as locked.
  * - `unreachable`: /api/group failed (offline or a server error) and nothing is cached — we can't tell
  *   whether this device is unlocked, so it isn't asked for the password.
  */
@@ -95,7 +110,7 @@ export function useGroup() {
   const { data, error, mutate } = useSWR<GroupInfo, ApiError>(ep.GROUP_KEY, fetcher, { isPaused: () => false });
   const pendingLock = useSyncExternalStore(subscribeGate, hasPendingLock, () => false);
   const status: GateStatus = pendingLock ? 'locked'
-    : data ? (data.unlocked ? 'unlocked' : 'locked')
+    : data ? (data.unlocked && data.viewer ? 'unlocked' : 'locked')
     : error ? (error.status === 0 || error.status >= 500 ? 'unreachable' : 'locked')
     : 'loading';
   const group = data ?? DEFAULT_GROUP;
@@ -111,8 +126,14 @@ export function useGroup() {
 
   const unlock = useCallback(async (password: string) => {
     await flushing; // a Lock still on its way mustn't land after this unlock
-    await ep.unlock(password);
+    const { viewer } = await ep.unlock(password);
     setPendingLock(false);
+    if (noteSignIn(viewer)) {
+      // Somebody else is signing in over a lock-out: none of the last person's data or kept drafts carry over.
+      clearAllLocal();
+      clearOfflineData();
+      await clearDataCache();
+    }
     await mutate();
     endLockout();
   }, [mutate]);

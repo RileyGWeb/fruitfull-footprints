@@ -342,6 +342,12 @@
   margin-left: calc(-1 * var(--space-1));
 }
 
+/* The leaders' “Signing in” card: its action sits under the text, lined up with it like “Add a few details”. */
+.signinAction {
+  align-self: flex-start;
+  margin-left: calc(-1 * var(--space-1));
+}
+
 .muted {
   margin: 0;
   font-size: 14px;
@@ -382,6 +388,17 @@
 @media (hover: hover) {
   .dateRow:hover {
     background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  }
+}
+
+/* A date nobody here can change: the same row, with nothing to tap. */
+.dateStatic {
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .dateStatic:hover {
+    background: none;
   }
 }
 

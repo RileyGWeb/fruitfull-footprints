@@ -7,6 +7,7 @@ use App\Http\Resources\PrayerUpdateResource;
 use App\Models\PrayerRequest;
 use App\Models\PrayerUpdate;
 use App\Services\ActivityLog;
+use App\Services\Viewer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -33,8 +34,13 @@ class PrayerUpdateController extends Controller
         return new PrayerUpdateResource($update);
     }
 
-    public function destroy(PrayerUpdate $update): Response
+    /**
+     * Anyone signed in can add an update to a request; removing one is up to whoever manages the request.
+     */
+    public function destroy(Request $request, PrayerUpdate $update): Response
     {
+        Viewer::from($request)->authorize('manage', $update->prayerRequest);
+
         $update->delete();
 
         return response()->noContent();

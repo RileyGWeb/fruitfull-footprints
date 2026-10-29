@@ -75,7 +75,7 @@ function LockRow() {
   return (
     <div className={s.row}>
       <div className={s.label}>Lock</div>
-      <p className={s.text}>On a shared or borrowed phone? Lock it, and the group password is needed to open it again.</p>
+      <p className={s.text}>On a shared or borrowed phone? Lock it, and your password is needed to open it again.</p>
       <button type="button" className={`btn btn-secondary ${s.rowAction}`} onClick={() => void lock()}>
         <Icon name="lock" /> Lock this device
       </button>

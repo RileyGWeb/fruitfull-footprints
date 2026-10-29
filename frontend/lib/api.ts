@@ -84,7 +84,7 @@ async function request<T>(method: string, path: string, body?: unknown, retried 
     : res.status === 419 ? 'This page was open a long time — try that again.'
     : res.status === 404 ? 'That isn’t here anymore — it may have been removed.'
     : res.status === 401 ? 'Locked'
-    : (res.status === 409 || res.status === 422 || res.status === 503) && data?.message ? data.message
+    : (res.status === 403 || res.status === 409 || res.status === 422 || res.status === 503) && data?.message ? data.message
     : 'Something went wrong — try again in a moment.';
   throw new ApiError(res.status, message, data?.errors, undefined, data);
 }

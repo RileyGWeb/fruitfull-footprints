@@ -1,4 +1,6 @@
 // “Install the app”: what this browser can do, as a tiny external store for useSyncExternalStore.
+// Settings shows it as a helper; on a phone or tablet the shell shows it as the only screen until the
+// app is running from the home screen (useMustInstall, components/shell/InstallGate.tsx).
 //  - standalone → already running as the installed app (the helper hides)
 //  - prompt     → Chromium handed us a `beforeinstallprompt` event; our button replays it
 //  - ios        → iOS has no prompt; explain Share → Add to Home Screen
@@ -53,8 +55,12 @@ function subscribe(cb: () => void) {
   };
 }
 
+/** Any way a browser launches an installed web app without its tabs and address bar. */
+const APP_MODES = ['standalone', 'fullscreen', 'minimal-ui', 'window-controls-overlay'];
+
 const isStandalone = () =>
-  window.matchMedia(STANDALONE).matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  APP_MODES.some(mode => window.matchMedia(`(display-mode: ${mode})`).matches)
+  || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 /** iPhone / iPod / iPad — iPadOS reports itself as a Mac, so also a Mac with a touch screen. */
 const isIOS = () =>
@@ -70,6 +76,25 @@ function getSnapshot(): InstallState {
 }
 
 const getServerSnapshot = (): InstallState => 'unknown';
+
+/** A phone or tablet, by its browser's own word for it (an iPad asks for desktop sites, so see isIOS). */
+export const isMobileDevice = () =>
+  /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || isIOS();
+
+/** The browser inside another app (Facebook, Instagram, Messenger…), which can't add anything to a home screen. */
+export const isInAppBrowser = () =>
+  /FBAN|FBAV|FB_IAB|Instagram|Line\/|Snapchat|Twitter|MicroMessenger|LinkedInApp|Pinterest|TikTok|musical_ly/i.test(navigator.userAgent);
+
+/** A phone's or tablet's browser tab: neither a computer nor the installed app. */
+export const isMobileBrowser = () => isMobileDevice() && !isStandalone();
+
+/**
+ * Whether this page must show the install screen and nothing else (a phone's browser tab). False on a
+ * computer, and in the installed app itself; null while it can't be told yet (the server render).
+ */
+export function useMustInstall(): boolean | null {
+  return useSyncExternalStore(subscribe, isMobileBrowser, () => null);
+}
 
 export function useInstallState(): InstallState {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);

@@ -3,15 +3,20 @@
 import { useId } from 'react';
 import { useDialogs } from '@/components/dialogs';
 import { Icon } from '@/components/ui';
+import { useAccess } from '@/lib/hooks';
 import type { Prayer } from '@/lib/types';
 import type { PrayerView } from './people';
 import s from './Profile.module.css';
 
 type Props = { first: string; active: PrayerView[]; answered: PrayerView[] };
 
-/** The profile's “Prayer requests” column: active cards, then the answered ones. */
+/**
+ * The profile's “Prayer requests” column: active cards, then the answered ones. Editing and answering
+ * are for leaders and the person the requests are about.
+ */
 export function ProfilePrayers({ first, active, answered }: Props) {
   const dialogs = useDialogs();
+  const { canManagePrayer } = useAccess();
   const headingId = useId();
   const textId = (p: Prayer) => `${headingId}-p${p.id}`;
   const edit = (p: Prayer) => void dialogs.editPrayer(p);
@@ -30,7 +35,7 @@ export function ProfilePrayers({ first, active, answered }: Props) {
       {active.map(v => (
         <article key={v.prayer.id} className={s.card}>
           <div>
-            <EditButton describedBy={textId(v.prayer)} onClick={() => edit(v.prayer)} />
+            {canManagePrayer(v.prayer) && <EditButton describedBy={textId(v.prayer)} onClick={() => edit(v.prayer)} />}
             <p id={textId(v.prayer)} className={s.text}>{v.prayer.body}</p>
           </div>
           {v.updates.map(u => (
@@ -41,9 +46,11 @@ export function ProfilePrayers({ first, active, answered }: Props) {
           ))}
           <div className={s.cardFoot}>
             <span className={s.added}>Added {v.added}</span>
-            <button type="button" className={`btn btn-secondary hit ${s.answer}`} onClick={() => void dialogs.answerPrayer(v.prayer)}>
-              <Icon name="leafSm" /> Mark answered
-            </button>
+            {canManagePrayer(v.prayer) && (
+              <button type="button" className={`btn btn-secondary hit ${s.answer}`} onClick={() => void dialogs.answerPrayer(v.prayer)}>
+                <Icon name="leafSm" /> Mark answered
+              </button>
+            )}
           </div>
         </article>
       ))}
@@ -57,7 +64,7 @@ export function ProfilePrayers({ first, active, answered }: Props) {
               {v.prayer.answer && <p className={s.answerNote}>{v.prayer.answer}</p>}
               <div className={s.answeredFoot}>
                 <span className={s.answeredWhen}>Answered {v.answeredAgo}</span>
-                <EditButton inline describedBy={textId(v.prayer)} onClick={() => edit(v.prayer)} />
+                {canManagePrayer(v.prayer) && <EditButton inline describedBy={textId(v.prayer)} onClick={() => edit(v.prayer)} />}
               </div>
             </article>
           ))}

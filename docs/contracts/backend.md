@@ -15,45 +15,55 @@ SESSION AND CSRF FLOW (browser to Next on :3110, which proxies /api/* to Laravel
    Laravel 13 also accepts `Sec-Fetch-Site: same-origin` with no token (framework default).
    A request with no matching token and no same-origin header gets 419 `{"message":"CSRF token mismatch."}`. This covers no header, `same-site` and `cross-site`. On 419: call GET /api/group, then retry once.
 3. `POST /api/unlock {password}` returns:
-   - 200 `{unlocked:true}`. The session id and token are regenerated; the session stores ff_unlocked=true and ff_pw_version.
-   - 422 `{"message":"Try that once more.","errors":{"password":["Try that once more."]}}`.
+   - 200 `{unlocked:true, viewer:{role, member_id, name}}`. The session id and token are regenerated; the session stores ff_unlocked=true and who signed in (see ACCESS below).
+   - 422 `{"message":"Try that once more.","errors":{"password":["Try that once more."]}}`: no one has that password. Blank or not text is the same.
    - ★ 429 `{"message":"Too Many Attempts."}` with `Retry-After` once the `unlock` limiter trips. Only wrong passwords count. See UNLOCK THROTTLING below.
-   - 503 `{message}` when no password is configured.
-4. Gated routes return 401 `{"message":"Locked"}` unless the session is unlocked and its ff_pw_version equals the current version. The 401 comes before any 404.
+   - 503 `{message}` when no one can sign in yet: no super admin hash configured and no person has a login.
+4. Gated routes return 401 `{"message":"Locked"}` unless the session holds a login that still works (ACCESS). The 401 comes before any 403 or 404. A session from the time everyone shared one password (ff_pw_version, no person) is a 401.
 5. `POST /api/lock` returns 204. It invalidates the session and rotates the token.
-6. `PUT /api/settings/password {current_password, password, password_confirmation}` returns 204. The version is bumped, this session stays unlocked, and other sessions get 401. Errors:
-   - 422 `errors.current_password` ("That isn’t the current password.")
-   - 422 `errors.password` (minimum 6 characters, must be confirmed)
+6. There is no password change endpoint any more (`PUT /api/settings/password` is gone): a person's password is set by a leader on `POST /api/members` or `PATCH /api/members/{id}`, and removed with `DELETE /api/members/{id}/login`.
 
 ROUTES (all under /api; ids must be numeric, `[0-9]{1,18}`, anything else is 404)
 Public:
-- GET /api/group → GroupInfo
+- GET /api/group → GroupInfo (`viewer`: {role, member_id, name} or null)
 - POST /api/unlock
 - POST /api/lock → 204
 
-Gated:
-- GET /api/snapshot → Snapshot
-- PATCH /api/settings → Settings
-- PUT /api/settings/password → 204
-- POST /api/members → 201 Member
-- PATCH /api/members/{id} → Member
-- DELETE /api/members/{id} → 204
-- POST /api/members/{id}/dates → 201 MemberDate
-- PATCH /api/dates/{id} → MemberDate
-- DELETE /api/dates/{id} → 204
+Gated (signed in). Marks: (L) leaders only, by the `leader` route gate (403 for a member); (S) the person themselves or a leader; (M) a leader or the person the request is about; see ACCESS.
+- GET /api/snapshot → Snapshot (members: published studies only)
+- PATCH /api/settings (L) → Settings
+- POST /api/members (L) → 201 Member
+- PATCH /api/members/{id} (S) → Member
+- DELETE /api/members/{id} (L, not yourself) → 204
+- DELETE /api/members/{id}/login (L, not yourself) → Member
+- POST /api/members/{id}/dates (S) → 201 MemberDate
+- PATCH /api/dates/{id} (S) → MemberDate
+- DELETE /api/dates/{id} (S) → 204
 - POST /api/prayers → 201 Prayer
-- PATCH /api/prayers/{id} → Prayer
-- DELETE /api/prayers/{id} → 204
-- POST /api/prayers/{id}/answer → Prayer
-- POST /api/prayers/{id}/reopen → Prayer
+- PATCH /api/prayers/{id} (M; moving it to another person: leaders) → Prayer
+- DELETE /api/prayers/{id} (M) → 204
+- POST /api/prayers/{id}/answer (M) → Prayer
+- POST /api/prayers/{id}/reopen (M) → Prayer
 - POST /api/prayers/{id}/updates → 201 PrayerUpdate
-- DELETE /api/prayer-updates/{id} → 204
-- GET /api/studies/{id} → Study
-- POST /api/studies → 201 Study
-- PUT /api/studies/{id} → Study · ★ 409 `{message, study}` (see STUDY SAVES AND CONFLICTS)
-- DELETE /api/studies/{id} → 204
+- DELETE /api/prayer-updates/{id} (M, of its request) → 204
+- GET /api/studies/{id} → Study (404 for a draft, to a member)
+- POST /api/studies (L) → 201 Study
+- PUT /api/studies/{id} (L) → Study · ★ 409 `{message, study}` (see STUDY SAVES AND CONFLICTS)
+- DELETE /api/studies/{id} (L) → 204
 
-Errors: 422 `{message, errors:{field:[msg]}}`, 401, 404 `{message}`, 405, ★ 409, 419, 429, 503.
+Errors: 422 `{message, errors:{field:[msg]}}`, 401, ★ 403 `{"message":"You don’t have access to do that."}` (every 403 says exactly this), 404 `{message}`, 405, ★ 409, 419, 429, 503.
+
+ACCESS (people with logins of their own; roles)
+- A person (`members` row) has `role` (`member` or `leader`) and, optionally, a login: `password_hash` (bcrypt) + `password_lookup` (HMAC-SHA256 of the trimmed password keyed with `APP_KEY`, unique) + `auth_version`. The hidden super admin is not a row: `config('group.super_admin_hash')`, from env `SUPER_ADMIN_PASSWORD_HASH`.
+- The password alone says who signs in. `Logins::attempt` finds the person by the lookup, confirms with bcrypt, and otherwise tries the super admin hash; a miss costs one bcrypt check, the same as a hit. A hash in the environment that isn't bcrypt (a mangled `$`) is logged and matches nobody, instead of breaking sign-in for all. Passwords are case sensitive and trimmed (a phone keyboard's trailing space doesn't matter). After `APP_KEY` changes, every person's password has to be set again (the lookup is keyed by it); the super admin's is unaffected.
+- Session keys: `ff_unlocked`, then `ff_member_id` + `ff_auth_version` for a person, or `ff_super` (a 32-character fingerprint of the super admin hash) for the super admin. A new sign-in clears the others, so one device is one person at a time. The viewer is resolved on every request (one query), so: a changed role counts at once; a new or removed password raises `auth_version` and every other device of that person gets 401 (the device that set its own password is kept signed in); a removed person's sessions get 401; a new super admin hash signs the super admin out.
+- Passwords (`Logins::passwordProblem`, one source for the API and `ff:login`): trimmed length 8–64 characters and at most 72 bytes (bcrypt reads no more); not in a short list of very common passwords (including the app's own name) and not one character repeated; not another person's or the super admin's. Messages (422 under `password`): “Use at least 8 characters.”, “Keep it under 64 characters.”, “That one’s too easy to guess. Try something longer or less common.”, “Someone else already uses that password. Try another.”, “This needs to be text.”. A clash that slips past the check (two leaders setting the same one at once) is caught by the unique index and reported the same way.
+- Who may do what is `backend/app/Policies` (`MemberPolicy`: create/update/delete/manageLogin/removeLogin; `PrayerRequestPolicy`: manage/reassign; `StudyPolicy`: view/create/update/delete), asked through `Viewer::can()` / `authorize()`; the super admin passes every one as a leader who is nobody's profile. Form requests authorize before they validate, so a forbidden save is 403, never 422.
+  - Members: `PATCH /members/{self}` for the profile fields; dates of their own profile; requests and updates on any request; manage requests about them (not move them); read published studies. Sending `role` or `password` as a member is a 403, even with no other change.
+  - A leader can't `DELETE` themselves, can't remove their own login, and can't `PATCH` their own `role` to `member` (422 `errors.role`: “You can’t step down yourself. Ask another leader.”). They can set their own password.
+  - `MemberResource` adds `role` for everyone and `has_login` for leaders only; nothing derived from a password ever leaves the server.
+- `php artisan ff:login {member} {--role=} {--password=} {--remove}` does the same from the server.
+- The `leader` middleware looks the viewer up itself (it doesn't rely on running after `group.unlocked`) and, like `group.unlocked`, answers before route model binding: `DELETE /api/members/999999` is 401 signed out, 403 as a member, 404 as a leader.
 
 REFINEMENTS TO SPEC 2.3 / 2.4 (★ = changed in this review)
 - Timestamps look like `2026-10-05T19:00:00.000000Z` (UTC, microseconds). `meeting_date` is YYYY-MM-DD.
@@ -78,6 +88,7 @@ REFINEMENTS TO SPEC 2.3 / 2.4 (★ = changed in this review)
   - A blank `series` is derived from `ref` on every save; an explicit series is kept.
   - draft→published or created-as-published sets published_at=now and logs `study_published`. published→draft clears published_at. Saving a draft, or editing a published study, logs nothing.
 - Members:
+  - ★ `role` (`member` default, or `leader`) and `password` are leader-only fields on POST and PATCH (see ACCESS); `profile()` in `SaveMemberRequest` is everything else. A blank `password` is ignored (kept), so a form can leave it empty.
   - POST needs only `name`. `tone` (null or missing) cycles sage, accent, sand by member count.
   - ★ `gifts` must be a JSON array, i.e. a list; an object or null returns 422. Each gift must be from the GIFTS list.
   - ★ Repeated gifts are de-duplicated (first wins, order kept) instead of rejected.
@@ -101,25 +112,26 @@ REFINEMENTS TO SPEC 2.3 / 2.4 (★ = changed in this review)
   - Adding an update touches the prayer and logs. Updates come oldest first.
 - Settings:
   - PATCH accepts any subset. `since_year` is an integer from 1900 to 2100. `meeting_day` is capitalised Sunday through Saturday.
-  - A null tagline is stored as ''. Unknown keys (password_hash, password_version) are ignored.
+  - A null tagline is stored as ''. Unknown keys (an old password_hash or password_version, `role`) are ignored. Leaders only.
 - Snapshot:
   - `settings`
   - `members` in join order: created_at, then id
   - `prayers` by created_at desc, then id desc
-  - `studies` by meeting_date desc, then id desc (drafts included)
+  - `studies` by meeting_date desc, then id desc (drafts included for leaders and the super admin; published only for members)
   - `activity`: the newest 20, by created_at desc then id desc
   - `server_time`
 - Demo data:
-  - Member ids 1–8 follow prototype order.
+  - Member ids 1–8 follow prototype order. Rachel (1) and Mike (3) are leaders, and with Sarah (2, a member) have logins (`DemoSeeder::LOGINS`).
   - Timestamps are 19:00 UTC, and the shift is floor(days/7)*7.
   - ★ The Psalms of Ascent scripture is now exact World English Bible text.
 - ★ Writes that also log activity run in one transaction, so a failed log entry leaves nothing half-saved (and a retry can't duplicate): adding a member, adding a prayer, marking one answered, adding a prayer update, and saving a study.
 
 VALIDATION MESSAGES (★)
-- Every 422 field message is plain copy the client can show under the field: no field names or paths (`sections.0.body`), no exclamation marks, curly apostrophes. E.g. "Keep it under 2,000 characters.", "Pick someone from the group.", "The group needs a name.", "Choose a new password." They live in each FormRequest's `messages()` and the two inline validations (a prayer update's `body`, the `/answer` note). `tests/Feature/ValidationMessagesTest.php` pins them word for word.
+- Every 422 field message is plain copy the client can show under the field: no field names or paths (`sections.0.body`), no exclamation marks, curly apostrophes. E.g. "Keep it under 2,000 characters.", "Pick someone from the group.", "The group needs a name.", "Use at least 8 characters." They live in each FormRequest's `messages()` and the two inline validations (a prayer update's `body`, the `/answer` note). `tests/Feature/ValidationMessagesTest.php` pins them word for word.
 - A few keep Laravel's own wording because the frontend matches on it (guarded by `test_messages_the_frontend_reads_keep_their_wording`):
   - studies: every `max` ("… greater than N characters." / "… more than N items.") and the `ref`/`title` "required when status is published", read by `friendly()` in `frontend/components/editor/draft.ts`;
-  - `password.min` and `password.confirmed`, read by `passwordServerErrors()` in `frontend/components/settings/form.ts` (by "least"/"min" and "confirm", so no other password message may use those words).
+  - (The group password form that read `password.min` and `password.confirmed` is gone with the group password; a person's password has plain messages of its own, see ACCESS.)
+- Member `role` has “Pick member or leader.” (scoped to the `in` rule, so the leader's own “You can’t step down yourself…” isn't overridden), and `password` the ACCESS messages above.
 - The top-level `message` is Laravel's (it adds "(and N more errors)"); the client shows the field messages instead.
 
 STUDY SAVES AND CONFLICTS (★ optimistic concurrency)
@@ -155,5 +167,6 @@ RESPONSE HEADERS (★)
 - An unknown /api path (no route) is a plain 404 without these headers.
 
 SESSIONS AND PRODUCTION (★)
-- Every cookie-less request to an /api route starts a session row. `php artisan ff:prune-sessions` is scheduled daily (`routes/console.php`; production needs the `schedule:run` cron). It deletes rows idle for 24 hours or more (`--hours=` changes that) unless they are unlocked with the current password version. That covers visitors who never unlocked, devices that locked, and devices still on an old password. Unlocked sessions keep their year.
+- Every cookie-less request to an /api route starts a session row. `php artisan ff:prune-sessions` is scheduled daily (`routes/console.php`; production needs the `schedule:run` cron). It deletes rows idle for 24 hours or more (`--hours=` changes that) unless they are signed in with a login that still works: a person with a login whose `auth_version` the session holds, or the super admin with the current hash's fingerprint (same test as the gate, read from the stored payload). That covers visitors who never signed in, devices that locked, devices whose password changed or was removed, people who were removed, and sessions from the time of the shared group password. Signed-in sessions keep their year.
 - With `APP_ENV=production`, the session and XSRF cookies are `Secure` unless `SESSION_SECURE_COOKIE=false`. Elsewhere they are Secure whenever the request arrives over https. `backend/.env.example` has a Production block, and `backend/README.md` has the deploy checklist. That checklist covers debug off, `--no-dev`, `expose_php=Off`, the XFF-appending front proxy, `BACKEND_URL`, and the scheduler.
+- `SUPER_ADMIN_PASSWORD_HASH` (a bcrypt hash, never the password) comes from the environment; this deployment keeps it in the `sandbox/apps/fruitfull/env` secret (infra/README.md). A value that isn't bcrypt is logged and ignored, so a mangled one can't take sign-in down. The deploy runs `db:seed --force` every time; `DatabaseSeeder` only adds missing default settings.

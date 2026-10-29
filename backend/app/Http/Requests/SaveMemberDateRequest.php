@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Member;
 use App\Models\MemberDate;
+use App\Services\Viewer;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,9 +15,20 @@ use Illuminate\Validation\Validator;
  * POST creates (kind, date and recurring required); PATCH accepts any subset.
  *
  * `date` is a full `YYYY-MM-DD`, or `--MM-DD` for a recurring date kept without a year.
+ *
+ * Dates belong to a profile, so whoever can edit the profile (a leader, or the person) can
+ * add, change and remove them.
  */
 class SaveMemberDateRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        $date = $this->route('date');
+        $member = $date instanceof MemberDate ? $date->member : $this->route('member');
+
+        return $member instanceof Member && Viewer::from($this)->can('update', $member);
+    }
+
     /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */

@@ -4,7 +4,7 @@ import { useId, useMemo, useState } from 'react';
 import { useDialogs } from '@/components/dialogs';
 import { Avatar, BackButton, Icon, NotFound, ScreenState } from '@/components/ui';
 import { today } from '@/lib/dates';
-import { useSnapshot } from '@/lib/hooks';
+import { useAccess, useSnapshot } from '@/lib/hooks';
 import { GIFTS, firstName } from '@/lib/members';
 import { useDocumentTitle } from '@/lib/title';
 import type { Member, Prayer } from '@/lib/types';
@@ -45,6 +45,8 @@ export function Profile({ id }: { id: string }) {
 
 function ProfileView({ member, prayers }: { member: Member; prayers: Prayer[] }) {
   const dialogs = useDialogs();
+  const access = useAccess();
+  const canEdit = access.canEditPerson(member.id);
   const [editingGifts, setEditingGifts] = useState(false);
   const { gifts, toggle } = useGiftEditor(member);
   const panelId = useId();
@@ -55,9 +57,11 @@ function ProfileView({ member, prayers }: { member: Member; prayers: Prayer[] })
     <div className={s.screen}>
       <div className={s.top}>
         <BackButton href="/people" label="Everyone" className="hit" />
-        <button type="button" className={`btn btn-secondary hit ${s.edit}`} aria-label={`Edit ${first}`} onClick={() => void dialogs.editPerson(member)}>
-          <Icon name="editSm" /> Edit
-        </button>
+        {canEdit && (
+          <button type="button" className={`btn btn-secondary hit ${s.edit}`} aria-label={access.isMe(member.id) ? 'Edit your profile' : `Edit ${first}`} onClick={() => void dialogs.editPerson(member)}>
+            <Icon name="editSm" /> Edit
+          </button>
+        )}
       </div>
 
       <div className={s.header}>
@@ -65,16 +69,20 @@ function ProfileView({ member, prayers }: { member: Member; prayers: Prayer[] })
         <div className={s.info}>
           <h1 className={s.name}>{member.name}</h1>
           <div className={s.gifts}>
+            {member.role === 'leader' && <span className={`tag tag-accent ${s.gift}`}>Leader</span>}
+            {access.isMe(member.id) && <span className={`tag tag-outline ${s.gift}`}>You</span>}
             {gifts.map(g => <span key={g} className={`tag tag-accent-2 ${s.gift}`}>{g}</span>)}
-            <button
-              type="button"
-              className={`btn btn-ghost hit ${s.giftToggle}`}
-              aria-expanded={editingGifts}
-              aria-controls={editingGifts ? panelId : undefined}
-              onClick={() => setEditingGifts(v => !v)}
-            >
-              <Icon name="editSm" /> {editingGifts ? 'Done' : 'Edit gifts'}
-            </button>
+            {canEdit && (
+              <button
+                type="button"
+                className={`btn btn-ghost hit ${s.giftToggle}`}
+                aria-expanded={editingGifts}
+                aria-controls={editingGifts ? panelId : undefined}
+                onClick={() => setEditingGifts(v => !v)}
+              >
+                <Icon name="editSm" /> {editingGifts ? 'Done' : 'Edit gifts'}
+              </button>
+            )}
           </div>
         </div>
         <button type="button" className={`btn btn-primary ${s.addPrayer}`} onClick={() => void dialogs.addPrayer({ memberId: member.id })}>
@@ -82,7 +90,7 @@ function ProfileView({ member, prayers }: { member: Member; prayers: Prayer[] })
         </button>
       </div>
 
-      {editingGifts && (
+      {canEdit && editingGifts && (
         <div id={panelId} className={s.panel} role="group" aria-label={`${first}’s spiritual gifts`}>
           <div className={s.panelHint}>Tap to add or remove {first}’s spiritual gifts.</div>
           <div className={s.options}>

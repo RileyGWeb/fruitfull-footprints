@@ -1,6 +1,6 @@
 # Fruitfull Footprints — app
 
-The Next.js 16 (App Router) client: every screen, the password gate, and the service worker for
+The Next.js 16 (App Router) client: every screen, the install screen and sign-in, and the service worker for
 offline reading. It talks only to its own origin; `/api/*` is rewritten to the Laravel API
 (`BACKEND_URL`, default `http://127.0.0.1:8110`, baked in at `next build`).
 

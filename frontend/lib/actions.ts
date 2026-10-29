@@ -12,7 +12,7 @@ import { whenRoute } from './route.ts';
 import { toStudyInput } from './studies.ts';
 import { showToast, type ToastTone } from './toast.ts';
 import type {
-  DateInput, Member, MemberInput, PasswordInput, PrayerInput, PrayerPatch, Settings, Snapshot, Study, StudyInput, StudyStatus,
+  DateInput, Member, MemberInput, PrayerInput, PrayerPatch, Settings, Snapshot, Study, StudyInput, StudyStatus,
 } from './types.ts';
 
 type Toast<T> = string | ((result: T) => string | null) | null;
@@ -114,6 +114,9 @@ export function createActions(cache: Cache, mutate: ScopedMutator, notify: Notif
     /** Doesn't wait for the snapshot refetch, so callers can navigate away first. */
     deleteMember: (member: Pick<Member, 'id' | 'name'>) =>
       run(() => ep.deleteMember(member.id), `Removed ${firstName(member)}`, () => forgetMember(member.id)),
+    /** Leaders: take someone's password away. They stay in the group, they just can't sign in. */
+    removeLogin: (member: Pick<Member, 'id' | 'name'>) =>
+      run(() => ep.removeLogin(member.id), `${firstName(member)} can’t sign in anymore`),
 
     // studies
     /**
@@ -138,7 +141,6 @@ export function createActions(cache: Cache, mutate: ScopedMutator, notify: Notif
 
     // settings
     updateSettings: (patch: Partial<Settings>) => run(() => ep.updateSettings(patch), 'Settings saved', () => refresh(ep.GROUP_KEY)),
-    changePassword: (input: PasswordInput) => run(() => ep.changePassword(input), 'Password changed', () => undefined),
   };
 }
 

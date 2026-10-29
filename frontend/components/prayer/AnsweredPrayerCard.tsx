@@ -4,10 +4,10 @@ import { Icon } from '@/components/ui/Icon';
 import type { AnsweredPrayerView } from './views';
 import a from './AnsweredPrayerCard.module.css';
 
-type Props = { view: AnsweredPrayerView; onEdit: () => void };
+type Props = { view: AnsweredPrayerView; onEdit: () => void; canManage: boolean };
 
 /** An answered request: when, how it turned out, what was asked, and how long we carried it. */
-export function AnsweredPrayerCard({ view, onEdit }: Props) {
+export function AnsweredPrayerCard({ view, onEdit, canManage }: Props) {
   const { prayer, first, answeredAgo, carried } = view;
   return (
     <article className={a.card}>
@@ -24,9 +24,11 @@ export function AnsweredPrayerCard({ view, onEdit }: Props) {
       {prayer.answer && <p className={a.answer}>{prayer.answer}</p>}
       <p className={a.asked}>{first} asked: “{prayer.body}”</p>
       <span className={a.carried}>Prayed over for {carried}</span>
-      <button type="button" className={`btn btn-ghost btn-icon ${a.edit}`} onClick={onEdit} aria-label={`Edit ${first}’s answered request`} title="Edit request">
-        <Icon name="edit" />
-      </button>
+      {canManage && (
+        <button type="button" className={`btn btn-ghost btn-icon ${a.edit}`} onClick={onEdit} aria-label={`Edit ${first}’s answered request`} title="Edit request">
+          <Icon name="edit" />
+        </button>
+      )}
     </article>
   );
 }

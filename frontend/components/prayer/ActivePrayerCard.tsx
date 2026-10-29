@@ -15,10 +15,12 @@ type Props = {
   onUpdatingChange: (open: boolean) => void;
   onAnswer: () => void;
   onEdit: () => void;
+  /** Leaders, and the person the request is about, can edit or answer it; anyone can add an update. */
+  canManage: boolean;
 };
 
 /** An active request: who it's for, the request, its updates, and the inline update form (screen 11). */
-export function ActivePrayerCard({ view, updating, onUpdatingChange, onAnswer, onEdit }: Props) {
+export function ActivePrayerCard({ view, updating, onUpdatingChange, onAnswer, onEdit, canManage }: Props) {
   const { prayer, member, first, added, updates } = view;
   const nameId = useId();
   const formId = useId();
@@ -38,9 +40,11 @@ export function ActivePrayerCard({ view, updating, onUpdatingChange, onAnswer, o
           <h2 id={nameId} className={c.name}>{first}</h2>
           <div className={c.meta}>{added}</div>
         </div>
-        <button type="button" className={`btn btn-ghost btn-icon ${c.edit}`} onClick={onEdit} aria-label={`Edit ${first}’s request`} title="Edit request">
-          <Icon name="edit" />
-        </button>
+        {canManage && (
+          <button type="button" className={`btn btn-ghost btn-icon ${c.edit}`} onClick={onEdit} aria-label={`Edit ${first}’s request`} title="Edit request">
+            <Icon name="edit" />
+          </button>
+        )}
       </div>
 
       <p className={c.body}>“{prayer.body}”</p>
@@ -69,9 +73,11 @@ export function ActivePrayerCard({ view, updating, onUpdatingChange, onAnswer, o
         >
           <Icon name="editSm" /> Add update
         </button>
-        <button type="button" className={`btn btn-secondary ${c.action} ${c.answer} hit`} onClick={onAnswer}>
-          <Icon name="leafSm" /> Mark answered
-        </button>
+        {canManage && (
+          <button type="button" className={`btn btn-secondary ${c.action} ${c.answer} hit`} onClick={onAnswer}>
+            <Icon name="leafSm" /> Mark answered
+          </button>
+        )}
       </div>
     </article>
   );

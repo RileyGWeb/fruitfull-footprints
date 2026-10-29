@@ -11,8 +11,8 @@ the root [`README.md`](../README.md) (start the whole stack there with `npm run 
 
 | Command | What it does |
 |---|---|
-| `php artisan ff:password` | Set the group password (prompts; `--password=` to pass it). Locks every other device. |
-| `php artisan ff:prune-sessions` | Remove locked sessions idle for a day (`--hours=` to change). Scheduled daily. |
+| `php artisan ff:login {member}` | Give someone (by id or full name) a login: `--password=` (asked for when left out), `--role=member\|leader`, or `--remove`. For when no leader can; signs that person out elsewhere. |
+| `php artisan ff:prune-sessions` | Remove idle sessions that aren't signed in with a login that still works (`--hours=` to change). Scheduled daily. |
 | `php artisan migrate:fresh --seed --seeder=DemoSeeder` | Demo data. Wipes the database. |
 | `php artisan test` | Feature tests against Postgres `fruitfull_test`. |
 | `./vendor/bin/pint --test` | Code style check (`pint` without `--test` fixes it). |
@@ -38,9 +38,12 @@ does) — both give the browser an identical same-origin contract; pick whicheve
    runs in local mode or with debug on.
 2. **Environment:** copy `.env.example`, apply its *Production* block (`APP_ENV=production`,
    `APP_DEBUG=false`, `APP_URL` = the public https origin, `LOG_LEVEL=warning`), run
-   `php artisan key:generate` once, and set the group password (`GROUP_PASSWORD` before the first
-   seed, or `php artisan ff:password`). With `APP_ENV=production` the session and XSRF cookies are
-   `Secure` unless `SESSION_SECURE_COOKIE=false`.
+   `php artisan key:generate` once, and set `SUPER_ADMIN_PASSWORD_HASH` (a bcrypt hash, in single quotes
+   in a `.env` file, as it holds `$`) so someone can sign in and give everyone else their logins; or give a
+   first leader theirs with `php artisan ff:login`. With `APP_ENV=production` the session and XSRF cookies
+   are `Secure` unless `SESSION_SECURE_COOKIE=false`. **Changing `APP_KEY` later breaks every login**: a
+   person's password is found by a keyed hash of it, so each has to be set again (the super admin's isn't
+   affected).
 3. **Database and caches:** `php artisan migrate --force && php artisan db:seed --force`, then
    `php artisan config:cache && php artisan route:cache` (repeat after every deploy).
 4. **PHP:** `expose_php=Off` and `display_errors=Off` in php.ini.
@@ -59,4 +62,4 @@ does) — both give the browser an identical same-origin contract; pick whicheve
    at build time — point it at Laravel's loopback/private address. If something in front of Next
    (nginx) routes `/api` straight to Laravel instead, this is moot — `rewrites()` never fires.
 7. **Scheduler:** `* * * * * cd /path/to/backend && php artisan schedule:run >> /dev/null 2>&1`
-   (prunes idle locked sessions daily).
+   (prunes idle sessions that aren't signed in daily).

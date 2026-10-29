@@ -1,6 +1,6 @@
 // Screenshot the running app (default http://localhost:3110) for visual comparison
-// against docs/design/refs. Unlocks the password gate automatically and caches the
-// session in tools/.auth.json.
+// against docs/design/refs. Signs in automatically (as Rachel, a leader of the demo group;
+// FF_PASSWORD picks another login) and caches the session in tools/.auth.json.
 //
 //   node tools/shot.mjs --url /prayer --out /tmp/prayer.png
 //   node tools/shot.mjs --url /studies --viewport desktop --full --out /tmp/s.png
@@ -26,7 +26,7 @@ const base = opt('base', process.env.FF_BASE_URL || 'http://localhost:3110');
 const url = opt('url', '/');
 const out = opt('out', '/tmp/ff-shot.png');
 const desktop = opt('viewport', 'mobile') === 'desktop';
-const password = process.env.GROUP_PASSWORD || 'footprints';
+const password = process.env.FF_PASSWORD || 'footprints'; // Rachel, a leader (DemoSeeder::LOGINS)
 const fills = all('fill').map(parseFill);
 const authFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '.auth.json');
 
@@ -56,7 +56,7 @@ try {
       await pw.press('Enter');
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(500);
-      if (await pw.isVisible().catch(() => false)) throw new Error('Unlock failed — is GROUP_PASSWORD right and the backend up?');
+      if (await pw.isVisible().catch(() => false)) throw new Error('Sign-in failed — is FF_PASSWORD right (a demo login, see DemoSeeder::LOGINS) and the backend up?');
       await ctx.storageState({ path: authFile });
       await page.goto(base + url, { waitUntil: 'networkidle' });
     }
@@ -69,7 +69,7 @@ try {
   await page.screenshot({ path: out, fullPage: flag('full') });
   console.log('saved', out);
 } catch (e) {
-  if (String(e).includes('Unlock failed') && existsSync(authFile)) rmSync(authFile);
+  if (String(e).includes('Sign-in failed') && existsSync(authFile)) rmSync(authFile);
   throw e;
 } finally {
   await browser.close();

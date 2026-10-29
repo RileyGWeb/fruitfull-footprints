@@ -11,14 +11,15 @@
  *
  * Environment:
  * - FF_BASE_URL     the app (default http://localhost:3110)
- * - GROUP_PASSWORD  the group password (default “footprints”, as in backend/.env)
+ * - FF_PASSWORD     Rachel's password, a leader (default “footprints”, as DemoSeeder sets it)
+ * - FF_MEMBER_PASSWORD  Sarah's, a regular member (default “sarah-member”)
  * - FF_E2E_NO_RESET=1  don't reset the database
  * - FF_E2E_WORKERS  parallel workers (default 4; the dev backend serves one request at a time)
  *
- * Projects: `setup` unlocks the gate once through the Entrance and saves the session (e2e/.auth/);
- * `mobile` (390×844, touch) and `desktop` (1280×900) reuse it. Tests are independent and run in
+ * Projects: `setup` signs in once through the Entrance, as a leader and as a member, and saves both
+ * sessions (e2e/.auth/); `mobile` (390×844, touch) and `desktop` (1280×900) reuse the leader's. Tests are independent and run in
  * parallel, both projects at once: anything a test creates is named “QA … <uid>” (unique per test and
- * project) and removed again (see the `qa` fixture in e2e/fixtures.ts). Nothing here changes the group
+ * project) and removed again (see the `qa` fixture in e2e/fixtures.ts). Nothing here changes anyone's
  * password or the group's name.
  */
 import { defineConfig } from '@playwright/test';

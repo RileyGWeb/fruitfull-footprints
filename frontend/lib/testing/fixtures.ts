@@ -21,7 +21,7 @@ export function members(): Member[] {
   return PEOPLE.map(([name, tone, gifts, dates], i) => {
     const id = i + 1;
     return {
-      id, name, tone, gifts, line: null, family: null, interests: null, good_to_know: null, created_at: '2026-01-01T19:00:00Z',
+      id, name, tone, role: 'member', gifts, line: null, family: null, interests: null, good_to_know: null, created_at: '2026-01-01T19:00:00Z',
       dates: dates.map((d): MemberDate => {
         const [month, day] = d.md.split('-').map(Number);
         return { id: ++dateId, member_id: id, kind: d.kind, label: d.label ?? null, month, day, year: d.year ?? null, recurring: !d.once };

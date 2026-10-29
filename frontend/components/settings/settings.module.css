@@ -31,7 +31,7 @@
   color: var(--color-neutral-700);
 }
 
-/* — password + device side by side like 04 Profile (section 440 / aside 300), stacked on phones — */
+/* — sign-in + device side by side like 04 Profile (section 440 / aside 300), stacked on phones — */
 
 .columns {
   display: flex;
@@ -186,6 +186,34 @@
   margin-top: 10px;
   min-height: 44px;
   gap: 6px;
+}
+
+/* — “You’re signed in” — */
+
+.who {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.whoText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.whoName {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.action {
+  align-self: flex-start;
+  min-height: 44px;
 }
 
 /* Add to Home Screen steps — the study's numbered question circles, smaller. */

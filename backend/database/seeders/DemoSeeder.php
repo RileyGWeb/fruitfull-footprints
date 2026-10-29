@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Activity;
 use App\Models\Member;
 use App\Models\Study;
+use App\Services\Logins;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -692,6 +693,17 @@ class DemoSeeder extends Seeder
         ['study_published', 'Romans 8 study notes were published', '2026-10-05'],
     ];
 
+    /**
+     * Logins for the local demo: who can sign in, as what, with which password. Never seeded in
+     * production (the deploy runs DatabaseSeeder, not this). Rachel is the leader the e2e tests
+     * and tools/shot.mjs sign in as; Sarah is a regular member.
+     */
+    public const LOGINS = [
+        'rachel' => ['role' => 'leader', 'password' => 'footprints'],
+        'mike' => ['role' => 'leader', 'password' => 'mike-leads'],
+        'sarah' => ['role' => 'member', 'password' => 'sarah-member'],
+    ];
+
     /** Days added to every absolute date. */
     private int $shift = 0;
 
@@ -719,8 +731,15 @@ class DemoSeeder extends Seeder
      */
     private function seedMembers(): array
     {
-        return array_map(function (array $data): Member {
+        $logins = app(Logins::class);
+
+        return collect(self::MEMBERS)->map(function (array $data, string $key) use ($logins): Member {
             $member = Member::create(Arr::except($data, 'dates'));
+
+            if (isset(self::LOGINS[$key])) {
+                $member->forceFill(['role' => self::LOGINS[$key]['role']])->save();
+                $logins->setPassword($member, self::LOGINS[$key]['password']);
+            }
 
             foreach ($data['dates'] as $date) {
                 $once = $date['once'] ?? false;
@@ -737,7 +756,7 @@ class DemoSeeder extends Seeder
             }
 
             return $member;
-        }, self::MEMBERS);
+        })->all();
     }
 
     /**

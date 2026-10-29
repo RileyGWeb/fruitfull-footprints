@@ -13,7 +13,7 @@ type Props = {
   lockedOut?: boolean;
 };
 
-/** Prototype screen 01: the shared-password gate. */
+/** Prototype screen 01: the gate. Everyone opens the app with a password of their own, and only that. */
 export function Entrance({ group, onUnlock, lockedOut }: Props) {
   const [pw, setPw] = useState('');
   const [err, setErr] = useState<string | null>(null);
@@ -62,18 +62,18 @@ export function Entrance({ group, onUnlock, lockedOut }: Props) {
         <p className={s.tagline}>{group.tagline}</p>
         {lockedOut && (
           <p id="ff-pw-why" className={s.why} role="status">
-            This device was locked — the group password may have changed. Anything you were in the middle of is still here.
+            This device was locked — your password may have changed. Anything you were in the middle of is still here.
           </p>
         )}
         <div className="field">
-          <label htmlFor="ff-pw">Group password</label>
+          <label htmlFor="ff-pw">Your password</label>
           <input
             ref={input}
             id="ff-pw"
             className={`input ${s.input}`}
             type="password"
             autoComplete="current-password"
-            placeholder="Shared password"
+            placeholder="Your password"
             value={pw}
             onChange={e => { setPw(e.target.value); setErr(null); }}
             aria-invalid={err ? true : undefined}
@@ -82,6 +82,7 @@ export function Entrance({ group, onUnlock, lockedOut }: Props) {
         </div>
         {err && <div id="ff-pw-err" role="alert" className={s.error}>{err}</div>}
         <button type="submit" className={`btn btn-primary btn-block ${s.open}`} aria-disabled={busy || undefined}>Open</button>
+        <p className={s.help}>No password yet? A leader can set one up for you.</p>
         <p className={s.motto}>Growing together, one step at a time.</p>
       </form>
     </main>
